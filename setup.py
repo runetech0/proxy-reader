@@ -2,8 +2,8 @@ import setuptools
 
 
 setuptools.setup(
-    name="discord_tools",
-    version="1.1.1",
+    name="proxy_reader",
+    version="1.0.0",
     author="Rehman Ali",
     author_email="rehmanali.9442289@gmail.com",
     description="Discord Tools for additional features",
