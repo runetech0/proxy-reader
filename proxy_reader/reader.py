@@ -46,7 +46,8 @@ class ReadProxies:
             random.shuffle(self._proxies)
 
     def _read_auth_proxies(self):
-        raw = open(self._file_path).read().splitlines()
+        with open(self._file_path, 'r') as f:
+            raw = f.read().splitlines()
         proxies = list()
         for proxy in raw:
             details = proxy.split(self._fields_separator)
@@ -56,7 +57,8 @@ class ReadProxies:
 
 
     def _read_proxies(self):
-        raw = open("proxies.txt").read().splitlines()
+        with open(self._file_path, 'r') as f:
+            raw = f.read().splitlines()
         proxies = list()
         for proxy in raw:
             details = proxy.split(self._fields_separator)
