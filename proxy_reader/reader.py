@@ -29,7 +29,9 @@ class Proxy:
         return f'{self._ip}:{self._port}'
 
 class ReadProxies:
-    def __init__(self, file_path="./proxies.txt", fields_separator=",", has_auth=False, proxy_index=0, username_index=1, password_index=2):
+    def __init__(self, file_path="./proxies.txt", fields_separator=",", has_auth=False,
+                    proxy_index=0, username_index=1,
+                    password_index=2, shuffle=False):
         self._file_path = file_path
         self._fields_separator = fields_separator
         self._has_auth = has_auth
@@ -40,6 +42,8 @@ class ReadProxies:
             self._proxies = self._read_auth_proxies()
         else:
             self._proxies = self._read_proxies()
+        if shuffle:
+            random.shuffle(self._proxies)
 
     def _read_auth_proxies(self):
         raw = open(self._file_path).read().splitlines()
@@ -48,7 +52,6 @@ class ReadProxies:
             details = proxy.split(self._fields_separator)
             ip, port = details[self._proxy_index].split(":")
             proxies.append(Proxy(ip, port, details[self._username_index], details[self._password_index]))
-        random.shuffle(proxies)
         return proxies
 
 
@@ -59,7 +62,6 @@ class ReadProxies:
             details = proxy.split(self._fields_separator)
             ip, port = details[self._proxy_index].split(":")
             proxies.append(Proxy(ip, port))
-        random.shuffle(proxies)
         return proxies
 
     @property
