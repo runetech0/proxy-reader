@@ -31,7 +31,7 @@ class Proxy:
         return {
             "proxy_type": 3,
             "addr": self._ip,
-            "port": self._port
+            "port": int(self._port)
         }
 
     @property
@@ -39,7 +39,7 @@ class Proxy:
         return {
             "proxy_type": 3,
             "addr": self._ip,
-            "port": self._port,
+            "port": int(self._port),
             "username": self._username,
             "password": self._password
         }
@@ -49,7 +49,7 @@ class Proxy:
         return {
             "proxy_type": 2,
             "addr": self._ip,
-            "port": self._port
+            "port": int(self._port)
         }
 
     @property
@@ -57,7 +57,7 @@ class Proxy:
         return {
             "proxy_type": 2,
             "addr": self._ip,
-            "port": self._port,
+            "port": int(self._port),
             "username": self._username,
             "password": self._password
         }
