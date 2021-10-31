@@ -1,6 +1,7 @@
 import random
 import itertools
-import socks
+import urllib.request
+import typing
 
 
 class Proxy:
@@ -79,9 +80,9 @@ class ReadProxies:
         self._username_index = username_index
         self._password_index = password_index
         if self._has_auth:
-            self._proxies = self._read_auth_proxies()
+            self._proxies: typing.List[Proxy] = self._read_auth_proxies()
         else:
-            self._proxies = self._read_proxies()
+            self._proxies: typing.List[Proxy] = self._read_proxies()
         if shuffle:
             random.shuffle(self._proxies)
 
@@ -113,6 +114,28 @@ class ReadProxies:
     def __repr__(self):
         return str(self._proxies)
 
-    def get_proxy(self):
+    def _is_working(self, http=None, https=None):
+        try:
+            proxy_handler = urllib.request.ProxyHandler(
+                {'https': https, "http": http})
+            opener = urllib.request.build_opener(proxy_handler)
+            opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+            urllib.request.install_opener(opener)
+            # change the url address here
+            urllib.request.urlopen('https://www.myip.com/')
+        except urllib.error.HTTPError as e:
+            return False
+        except Exception:
+            return False
+        return True
+
+    def get_proxy(self, check=True):
         for proxy in itertools.cycle(self._proxies):
+            if check:
+                http = proxy.http_with_auth if self._has_auth else proxy.http
+                https = proxy.https_with_auth if self._has_auth else proxy.https
+                if not self._is_working(http=http, https=https):
+                    print(f'{http} not working')
+                    continue
+            print(f'{http} is working')
             yield proxy
