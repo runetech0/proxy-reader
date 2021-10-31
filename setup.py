@@ -8,6 +8,6 @@ setuptools.setup(
     author_email="rehmanali.9442289@gmail.com",
     description="A Simple tool to read different types of proxies",
     url="https://github.com/rehmanali1337/proxy-reader",
-    packages=["proxy_reader"],
+    packages=setuptools.find_packages(),
     install_requires=[]
 )
