@@ -127,19 +127,21 @@ class ReadProxies:
         except urllib.error.HTTPError as e:
             return False
         except Exception:
-            traceback.print_exc()
+            # traceback.print_exc()
             return False
         return True
 
-    def get_proxy(self, check=True):
+    def get_proxy(self, check=True, debug=False):
         for proxy in itertools.cycle(self._proxies):
             if check:
                 http = proxy.http_with_auth if self._has_auth else proxy.http
                 https = proxy.https_with_auth if self._has_auth else proxy.https
                 if not self._is_working(http=http, https=https):
-                    # print(f'{http} not working')
+                    if debug:
+                        print(f'{http} not working')
                     continue
-            # print(f'{http} is working')
+            if debug:
+                print(f'{http} is working')
             yield proxy
 
     def validate_all_http(self):
@@ -147,7 +149,10 @@ class ReadProxies:
         for proxy in self._proxies:
             http = proxy.http
             if self._has_auth:
-                http = proxy.http_with_auth
-            if self._is_working(http=http):
+                http = proxy.http_with_auth if self._has_auth else proxy.http
+                https = proxy.https_with_auth if self._has_auth else proxy.https
+            print(f"Checking {http}")
+            if self._is_working(http=http, https=https):
                 validated.append(proxy)
         self._proxies = validated.copy()
+        print(f"Total valid proxies : {len(self._proxies)}")

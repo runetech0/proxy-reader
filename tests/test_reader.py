@@ -1,4 +1,5 @@
 import urllib.request
+import traceback
 
 
 def check_proxy(pip):
@@ -12,8 +13,9 @@ def check_proxy(pip):
     except urllib.error.HTTPError as e:
         return False
     except Exception:
+        traceback.print_exc()
         return False
     return True
 
 
-print(check_proxy(f"http://kyleG2:P6r4UdO@50.114.85.144:34512"))
+print(check_proxy(f"http://p.webshare.io:9999"))
