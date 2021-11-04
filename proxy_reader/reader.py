@@ -2,6 +2,7 @@ import random
 import itertools
 import urllib.request
 import typing
+import traceback
 
 
 class Proxy:
@@ -126,6 +127,7 @@ class ReadProxies:
         except urllib.error.HTTPError as e:
             return False
         except Exception:
+            traceback.print_exc()
             return False
         return True
 
