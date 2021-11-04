@@ -137,7 +137,7 @@ class ReadProxies:
                 http = proxy.http_with_auth if self._has_auth else proxy.http
                 https = proxy.https_with_auth if self._has_auth else proxy.https
                 if not self._is_working(http=http, https=https):
-                    print(f'{http} not working')
+                    # print(f'{http} not working')
                     continue
             # print(f'{http} is working')
             yield proxy
