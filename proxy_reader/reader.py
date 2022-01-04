@@ -141,7 +141,7 @@ class ReadProxies:
                         print(f'{http} not working')
                     continue
             if debug:
-                print(f'{http} is working')
+                print(f'{proxy} is working')
             yield proxy
 
     def validate_all_http(self):
@@ -156,3 +156,14 @@ class ReadProxies:
                 validated.append(proxy)
         self._proxies = validated.copy()
         print(f"Total valid proxies : {len(self._proxies)}")
+
+    def get_all_working_proxies(self):
+        working_proxies = list()
+        for proxy in itertools.cycle(self._proxies):
+            http = proxy.http_with_auth if self._has_auth else proxy.http
+            https = proxy.https_with_auth if self._has_auth else proxy.https
+
+            if self._is_working(http=http, https=https):
+                working_proxies.append(proxy)
+
+        return working_proxies
