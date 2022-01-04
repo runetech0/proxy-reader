@@ -2,7 +2,7 @@ import random
 import itertools
 import urllib.request
 import typing
-import traceback
+import threading
 
 
 class Proxy:
@@ -11,6 +11,38 @@ class Proxy:
         self._port = port
         self._username = username
         self._password = password
+
+    @property
+    def ip(self):
+        return self._ip
+
+    @ip.getter
+    def ip(self):
+        return self._ip
+
+    @property
+    def port(self):
+        return self._port
+
+    @port.getter
+    def port(self):
+        return self._port
+
+    @property
+    def username(self):
+        return self._username
+
+    @username.getter
+    def username(self):
+        return self._username
+
+    @property
+    def password(self):
+        return self._password
+
+    @password.getter
+    def password(self):
+        return self._password
 
     @property
     def http(self):
@@ -87,6 +119,9 @@ class ReadProxies:
         if shuffle:
             random.shuffle(self._proxies)
 
+        self._working_proxies = list()
+        self._non_working_proxies = list()
+
     def _read_auth_proxies(self):
         with open(self._file_path, 'r') as f:
             raw = f.read().splitlines()
@@ -115,7 +150,7 @@ class ReadProxies:
     def __repr__(self):
         return str(self._proxies)
 
-    def _is_working(self, http=None, https=None):
+    def _is_working(self, http=None, https=None, full_proxy=None, log=False):
         try:
             proxy_handler = urllib.request.ProxyHandler(
                 {'https': https, "http": http})
@@ -124,12 +159,23 @@ class ReadProxies:
             urllib.request.install_opener(opener)
             # change the url address here
             urllib.request.urlopen('https://www.example.com')
-        except urllib.error.HTTPError as e:
+
+            if full_proxy:
+                self._working_proxies.append(full_proxy)
+
+            if log:
+                print(f"{full_proxy} : WORKING")
+
+            return True
+
+        except (urllib.error.HTTPError, Exception):
+            if full_proxy:
+                self._non_working_proxies.append(full_proxy)
+
+            if log:
+                print(f"{full_proxy} : NOT-WORKING")
+
             return False
-        except Exception:
-            # traceback.print_exc()
-            return False
-        return True
 
     def get_proxy(self, check=True, debug=False):
         for proxy in itertools.cycle(self._proxies):
@@ -157,13 +203,24 @@ class ReadProxies:
         self._proxies = validated.copy()
         print(f"Total valid proxies : {len(self._proxies)}")
 
-    def get_all_working_proxies(self):
-        working_proxies = list()
-        for proxy in itertools.cycle(self._proxies):
+    def get_all_working_proxies(self, log=False) -> typing.List[Proxy]:
+        threads = list()
+        for proxy in self._proxies:
+
+            # print(f"Checking proxy {proxy}")
             http = proxy.http_with_auth if self._has_auth else proxy.http
             https = proxy.https_with_auth if self._has_auth else proxy.https
 
-            if self._is_working(http=http, https=https):
-                working_proxies.append(proxy)
+            t = threading.Thread(target=self._is_working, kwargs={
+                "http": http, "https": https, "full_proxy": proxy, "log": True})
 
-        return working_proxies
+            t.start()
+            threads.append(t)
+
+        for i, t in enumerate(threads):
+            t.join()
+
+        if log:
+            print("Done checking all proxies")
+
+        return self._working_proxies
