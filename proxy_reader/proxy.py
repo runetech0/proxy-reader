@@ -1,3 +1,5 @@
+from ftplib import parse229
+import aiosocks
 
 
 class Proxy:
@@ -11,15 +13,7 @@ class Proxy:
     def ip(self):
         return self._ip
 
-    @ip.getter
-    def ip(self):
-        return self._ip
-
     @property
-    def port(self):
-        return self._port
-
-    @port.getter
     def port(self):
         return self._port
 
@@ -27,69 +21,71 @@ class Proxy:
     def username(self):
         return self._username
 
-    @username.getter
-    def username(self):
-        return self._username
-
     @property
-    def password(self):
-        return self._password
-
-    @password.getter
     def password(self):
         return self._password
 
     @property
     def http(self):
+        if self.username is not None and self.password is not None:
+            return f'http://{self._username}:{self._password}@{self._ip}:{self._port}'
         return f'http://{self._ip}:{self._port}'
 
     @property
     def https(self):
+        if self.username is not None and self.password is not None:
+            return f'https://{self._username}:{self._password}@{self._ip}:{self._port}'
         return f'https://{self._ip}:{self._port}'
 
     @property
-    def http_with_auth(self):
-        return f'http://{self._username}:{self._password}@{self._ip}:{self._port}'
-
-    @property
-    def https_with_auth(self):
-        return f'https://{self._username}:{self._password}@{self._ip}:{self._port}'
-
-    @property
     def telegram_http(self):
-        return {
+        p = {
             "proxy_type": 3,
             "addr": self._ip,
             "port": int(self._port)
         }
-
-    @property
-    def telegram_http_auth(self):
-        return {
-            "proxy_type": 3,
-            "addr": self._ip,
-            "port": int(self._port),
-            "username": self._username,
-            "password": self._password
-        }
+        if self.username is not None and self.password is not None:
+            p.update({
+                "username": self.username,
+                "password": self.password
+            })
+        return p
 
     @property
     def telegram_socks5(self):
-        return {
+        p = {
             "proxy_type": 2,
             "addr": self._ip,
             "port": int(self._port)
         }
+        if self.username is not None and self.password is not None:
+            p.update({
+                "username": self.username,
+                "password": self.password
+            })
+        return p
 
     @property
-    def telegram_socks5_auth(self):
-        return {
-            "proxy_type": 2,
+    def telegram_socks4(self):
+        p = {
+            "proxy_type": 1,
             "addr": self._ip,
-            "port": int(self._port),
-            "username": self._username,
-            "password": self._password
+            "port": int(self._port)
         }
+        if self.username is not None and self.password is not None:
+            p.update({
+                "username": self.username,
+                "password": self.password
+            })
+        return p
+
+    @property
+    def socks5(self):
+        return f"socks5://{self.ip}:{self.port}"
+
+    @property
+    def socks4(self):
+        return f"socks4://{self.ip}:{self.port}"
 
     def __repr__(self):
         return f'{self._ip}:{self._port}'
