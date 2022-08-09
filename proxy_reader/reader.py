@@ -234,10 +234,30 @@ class ProxiesReader:
             self._proxy_iterator = __iter()
         return next(self._proxy_iterator).telegram_http
 
+    def next_http_telegram_from_cycle(self) -> str:
+        """Get next proxy from proxies cycle"""
+        def __iter():
+            for proxy in itertools.cycle(self.working_proxies):
+                yield proxy
+
+        if self._proxy_iterator is None:
+            self._proxy_iterator = __iter()
+        return next(self._proxy_iterator).telegram_http
+
     def next_socks5_telegram_from_cycle(self) -> str:
         """Get next proxy from proxies cycle"""
         def __iter():
             for proxy in itertools.cycle(self.working_proxies):
+                yield proxy
+
+        if self._proxy_iterator_cycle is None:
+            self._proxy_iterator_cycle = __iter()
+        return next(self._proxy_iterator_cycle).telegram_socks5
+
+    def next_socks5_telegram_from_list(self) -> str:
+        """Get next proxy from proxies cycle"""
+        def __iter():
+            for proxy in self.working_proxies:
                 yield proxy
 
         if self._proxy_iterator_cycle is None:
