@@ -1,5 +1,3 @@
-from ftplib import parse229
-import aiosocks
 
 
 class Proxy:
@@ -81,11 +79,17 @@ class Proxy:
 
     @property
     def socks5(self):
+        if self._username is not None and self._password is not None:
+            return f"socks5://{self._username}:{self._password}@{self.ip}:{self.port}"
         return f"socks5://{self.ip}:{self.port}"
 
     @property
     def socks4(self):
+        if self._username is not None and self._password is not None:
+            return f"socks4://{self._username}:{self._password}@{self.ip}:{self.port}"
         return f"socks4://{self.ip}:{self.port}"
 
     def __repr__(self):
+        if self._username is not None and self._password is not None:
+            return f'{self._ip}:{self._port}:{self._username}:{self._password}'
         return f'{self._ip}:{self._port}'

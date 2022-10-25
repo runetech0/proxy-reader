@@ -1,17 +1,17 @@
 import random
 import itertools
 from .proxy import Proxy
-from typing import *
+import typing
 import aiohttp
 import asyncio
 from .logger import logger, console_handler, file_handler
 import os
-import aiosocksy
-from aiosocksy.connector import ProxyConnector, ProxyClientRequest
+from aiohttp_socks import ProxyConnector
+import sys
 
 
 class TypesDefs:
-    ProxiesList = List[Proxy]
+    ProxiesList = typing.List[Proxy]
 
 
 class ProxiesReader:
@@ -20,7 +20,10 @@ class ProxiesReader:
         self.debug = debug
         self.extra_debug = extra_debug
         if not self.debug:
-            os.remove(file_handler.baseFilename)
+            try:
+                os.remove(file_handler.baseFilename)
+            except Exception:
+                pass
             logger.removeHandler(file_handler)
             logger.removeHandler(console_handler)
         self.shuffle = shuffle
@@ -80,10 +83,15 @@ class ProxiesReader:
     async def _check_proxy(self, proxy: Proxy, response_time: int = None):
         p = proxy.http
         logger.debug(f"Checking proxy {p} ..")
-        url = "https://www.example.com"
-        session = aiohttp.ClientSession()
+        url = "http://www.example.com"
+        limit = 100
+        if "win" in sys.platform:
+            # It's fucking windows so we need to limit the paralled connection now.
+            limit = 60
+        connector = aiohttp.TCPConnector(limit=limit)
+        session = aiohttp.ClientSession(connector=connector)
         try:
-            resp = await asyncio.wait_for(session.get(url, proxy=p), timeout=response_time)
+            resp = await asyncio.wait_for(session.get(url, proxy=p, ssl=False), timeout=response_time)
         except asyncio.TimeoutError:
             logger.debug(f"{p} : TIMEOUT: Not working.")
             self.bad_proxies.append(proxy)
@@ -110,20 +118,16 @@ class ProxiesReader:
                 self._check_proxy(proxy, max_resp_time)))
         await asyncio.gather(*tasks)
         self.proxies_checked = True
-        logger.debug(f"All proxies checked.")
+        logger.debug("All proxies checked.")
 
     async def _check_proxy_socks(self, proxy: Proxy, response_time: int = None):
-        url = "https://www.example.com"
-        if proxy.username is not None and proxy.password is not None:
-            auth = aiosocksy.Socks5Auth(proxy.username, proxy.password)
-        else:
-            auth = None
-        socks_connector = ProxyConnector()
+        url = "http://www.example.com"
+        socks_connector = ProxyConnector.from_url(proxy.socks5)
         session = aiohttp.ClientSession(
-            connector=socks_connector, request_class=ProxyClientRequest)
+            connector=socks_connector)
         logger.debug(f"Checking proxy {proxy} ..")
         try:
-            resp = await asyncio.wait_for(session.get(url, proxy=proxy.socks5, proxy_auth=auth), timeout=response_time)
+            resp = await asyncio.wait_for(session.get(url), timeout=response_time)
         except asyncio.TimeoutError:
             logger.debug(f"{proxy} : TIMEOUT: Not working.")
             self.bad_proxies.append(proxy)
@@ -150,7 +154,7 @@ class ProxiesReader:
                 self._check_proxy_socks(proxy, max_resp_time)))
         await asyncio.gather(*tasks)
         self.proxies_checked = True
-        logger.debug(f"All proxies checked.")
+        logger.debug("All proxies checked.")
 
     def get_working_proxies_list_http(self):
         working_list = []
