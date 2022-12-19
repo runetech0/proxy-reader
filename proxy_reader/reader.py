@@ -1,5 +1,6 @@
 import random
 import itertools
+
 from .proxy import Proxy
 import typing
 import aiohttp
@@ -51,7 +52,8 @@ class ProxiesReader:
         return str(self.proxies)
 
     def read_raw(self):
-        return open(self._file_path).readlines()
+        lines = open(self._file_path).readlines()
+        return [l.strip().replace("\n", "") for l in lines]
 
     def read_with_auth(self):
         """Format: IP:PORT:USERNAME:PASSWORD"""
@@ -83,7 +85,7 @@ class ProxiesReader:
     async def _check_proxy(self, proxy: Proxy, response_time: int = None):
         p = proxy.http
         logger.debug(f"Checking proxy {p} ..")
-        url = "http://www.example.com"
+        url = "https://www.example.com"
         limit = 100
         if "win" in sys.platform:
             # It's fucking windows so we need to limit the paralled connection now.
@@ -91,21 +93,25 @@ class ProxiesReader:
         connector = aiohttp.TCPConnector(limit=limit)
         session = aiohttp.ClientSession(connector=connector)
         try:
-            resp = await asyncio.wait_for(session.get(url, proxy=p, ssl=False), timeout=response_time)
+            resp = await asyncio.wait_for(session.get(url, proxy=p), timeout=response_time)
+
         except asyncio.TimeoutError:
             logger.debug(f"{p} : TIMEOUT: Not working.")
             self.bad_proxies.append(proxy)
             await session.close()
             return False
+
         except Exception as e:
             logger.debug(f"Bad proxy raised. {e}", exc_info=self.extra_debug)
             await session.close()
             return False
+
         await resp.read()
         await session.close()
         if resp.status == 200:
             logger.debug(f"{p}: Working")
             self.working_proxies.append(proxy)
+
         else:
             logger.debug(f"{p}: Not Working")
             self.bad_proxies.append(proxy)
