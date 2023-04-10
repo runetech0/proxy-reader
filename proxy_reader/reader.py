@@ -9,7 +9,9 @@ from .logger import logger, console_handler, file_handler
 import os
 from aiohttp_socks import ProxyConnector
 import sys
-
+from typing import (
+    Optional
+)
 
 class TypesDefs:
     ProxiesList = typing.List[Proxy]
@@ -53,7 +55,7 @@ class ProxiesReader:
 
     def read_raw(self):
         lines = open(self._file_path).readlines()
-        return [l.strip().replace("\n", "") for l in lines]
+        return [line.strip().replace("\n", "") for line in lines]
 
     def read_with_auth(self):
         """Format: IP:PORT:USERNAME:PASSWORD"""
@@ -179,22 +181,28 @@ class ProxiesReader:
             f.write("\n".join([proxy.strip() for proxy in working_list]))
         logger.debug(f"Proxies written to: {filename}")
 
-    def get_random_http(self) -> str:
+    def get_random_http(self) -> Optional[str]:
+        _p = None
         if len(self.working_proxies) > 0:
             proxy = random.choice(self.working_proxies)
-            return proxy.http
+            _p = proxy.http
+        return _p
 
-    def get_random_socks5(self) -> str:
+    def get_random_socks5(self) -> Optional[str]:
+        _p = None
         if len(self.working_proxies) > 0:
             proxy = random.choice(self.working_proxies)
-            return proxy.socks5
+            _p = proxy.socks5
+        return _p
 
-    def get_random_socks5_telegram(self) -> str:
+    def get_random_socks5_telegram(self) -> Optional[str]:
+        _p = None
         if len(self.working_proxies) > 0:
             proxy = random.choice(self.working_proxies)
-            return proxy.telegram_socks5
+            _p = proxy.telegram_socks5
+        return _p
 
-    def next_http_from_list(self) -> str:
+    def next_http_from_list(self) -> Optional[str]:
         """Get next proxy from proxies list"""
         def __iter():
             for proxy in self.working_proxies:
