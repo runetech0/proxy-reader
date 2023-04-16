@@ -26,27 +26,27 @@ class Proxy:
 
     @property
     def http(self) -> str:
-        if self.username is not None and self.password is not None:
+        if self.username and self.password:
             return f"http://{self._username}:{self._password}@{self._ip}:{self._port}"
         return f"http://{self._ip}:{self._port}"
 
     @property
     def https(self) -> str:
-        if self.username is not None and self.password is not None:
+        if self.username and self.password:
             return f"https://{self._username}:{self._password}@{self._ip}:{self._port}"
         return f"https://{self._ip}:{self._port}"
 
     @property
     def telegram_http(self) -> Dict[str, Any]:
         p = {"proxy_type": 3, "addr": self._ip, "port": int(self._port)}
-        if self.username is not None and self.password is not None:
+        if self.username and self.password:
             p.update({"username": self.username, "password": self.password})
         return p
 
     @property
     def telegram_socks5(self) -> Dict[str, Any]:
         p = {"proxy_type": 2, "addr": self._ip, "port": int(self._port)}
-        if self.username is not None and self.password is not None:
+        if self.username and self.password:
             p.update({"username": self.username, "password": self.password})
         return p
 

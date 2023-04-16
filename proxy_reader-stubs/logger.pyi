@@ -1,4 +1,4 @@
-from _typeshed import Incomplete as Incomplete
+from _typeshed import Incomplete
 
 filename: str
 logging_format: Incomplete
