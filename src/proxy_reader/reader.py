@@ -19,12 +19,14 @@ class ProxiesReader:
         self._debug = debug
         self._extra_debug = extra_debug
         if not self._debug:
+
             try:
                 os.remove(file_handler.baseFilename)
             except Exception:
                 pass
             logger.removeHandler(file_handler)
             logger.removeHandler(console_handler)
+
         self._shuffle = shuffle
         self._proxies: ProxiesList = []
         self._has_auth = False
@@ -57,6 +59,10 @@ class ProxiesReader:
     @property
     def working_proxies(self) -> ProxiesList:
         return self._working_proxies
+
+    @working_proxies.setter
+    def working_proxies(self, working_proxies: list[Proxy]) -> None:
+        self._working_proxies = working_proxies
 
     def __str__(self) -> str:
         return str(self._proxies)
@@ -131,7 +137,7 @@ class ProxiesReader:
 
     async def check_all_proxies(self, max_resp_time: int = 5) -> None:
         """Run this to check all proxies at once."""
-        tasks = []
+        tasks: List[asyncio.Task[bool]] = []
         for proxy in self._proxies:
             tasks.append(asyncio.create_task(self._check_proxy(proxy, max_resp_time)))
         await asyncio.gather(*tasks)
@@ -145,11 +151,13 @@ class ProxiesReader:
         logger.debug(f"Checking proxy {proxy} ..")
         try:
             resp = await asyncio.wait_for(session.get(url), timeout=response_time)
+
         except asyncio.TimeoutError:
             logger.debug(f"{proxy} : TIMEOUT: Not working.")
             self._bad_proxies.append(proxy)
             await session.close()
             return False
+
         except Exception as e:
             logger.debug(f"Bad proxy raised. {e}", exc_info=self._extra_debug)
             await session.close()
@@ -168,7 +176,7 @@ class ProxiesReader:
 
     async def check_all_proxies_socks5(self, max_resp_time: int = 5) -> None:
         """Run the check on all proxies at once."""
-        tasks = []
+        tasks: List[asyncio.Task[bool]] = []
         for proxy in self._proxies:
             tasks.append(asyncio.create_task(self._check_proxy_socks(proxy, max_resp_time)))
         await asyncio.gather(*tasks)
@@ -176,7 +184,7 @@ class ProxiesReader:
         logger.debug("All proxies checked.")
 
     def get_working_proxies_list_http(self) -> List[str]:
-        working_list = []
+        working_list: List[str] = []
         for proxy in self._working_proxies:
             if self._has_auth:
                 working_list.append(f"{proxy.ip}:{proxy.port}:{proxy.username}:{proxy.password}")
