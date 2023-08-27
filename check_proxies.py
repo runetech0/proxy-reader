@@ -1,6 +1,7 @@
 from proxy_reader import ProxiesReader
 import asyncio
 import time
+import sys
 
 
 async def main() -> None:
@@ -15,4 +16,9 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
+    if "win" in sys.platform:
+        loop = asyncio.SelectorEventLoop()
+        asyncio.set_event_loop(loop)
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
     asyncio.run(main())

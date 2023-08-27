@@ -40,6 +40,7 @@ class ProxiesReader:
             "https://duckduckgo.com/b203.js",
             "https://duckduckgo.com/tl7.js",
             "https://duckduckgo.com/post3.html",
+            # "https://www.cloudflare.com/cdn-cgi/trace",
         ]
 
         if not self._debug:
@@ -101,6 +102,7 @@ class ProxiesReader:
             username = sp_proxy[2]
             password = sp_proxy[3]
             self._proxies.append(Proxy(ip, port, username, password))
+
         self._has_auth = True
         if self._shuffle:
             random.shuffle(self._proxies)
@@ -119,19 +121,22 @@ class ProxiesReader:
 
     async def _check_proxy(self, proxy: Proxy, response_time: Optional[int] = None) -> bool:
         limit = 100
+
         if "win" in sys.platform:
-            # It's fucking windows so we need to limit the paralled connection now.
+            # It's fucking windows so we need to limit the number of parallel connections now.
             limit = 60
+
         connector = aiohttp.TCPConnector(limit=limit)
         session = aiohttp.ClientSession(connector=connector)
         url = self.random_url()
         p = proxy.http
+
         async with self._thread_control:
             logger.debug(f"Checking proxy {p} ..")
             try:
                 # resp = await asyncio.wait_for(session.get(url, proxy=p), timeout=self._max_response_time)
-                resp = await session.get(url, timeout=self._max_response_time, proxy=p)
-                await resp.read()
+                resp = await session.get(url, timeout=self._max_response_time, proxy=p, ssl=False)
+                # await resp.read()
                 await session.close()
 
             except asyncio.TimeoutError as e:
@@ -153,6 +158,7 @@ class ProxiesReader:
             else:
                 logger.debug(f"{p}: Not Working. Response code: {resp.status}")
                 self._bad_proxies.append(proxy)
+
             return True
 
     async def check_all_proxies(self, max_resp_time: int = 30) -> None:
