@@ -5,7 +5,7 @@ import aiohttp
 import asyncio
 from .logger import logger, console_handler, file_handler
 import os
-from aiohttp_socks import ProxyConnector  # type: ignore
+from aiohttp_socks import ProxyConnector  # pyright: ignore[reportMissingTypeStubs]
 import sys
 from typing import Optional, List, Dict, Any
 from ._types import ProxiesList, ProxyiesGen
