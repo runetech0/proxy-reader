@@ -5,7 +5,7 @@ import aiohttp
 import asyncio
 from .logger import logger, console_handler, file_handler
 import os
-from aiohttp_socks import ProxyConnector
+from aiohttp_socks import ProxyConnector  # type: ignore
 import sys
 from typing import Optional, List, Dict, Any
 from ._types import ProxiesList, ProxyiesGen
@@ -172,7 +172,7 @@ class ProxiesReader:
 
     async def _check_proxy_socks(self, proxy: Proxy, response_time: Optional[int] = None) -> bool:
         url = "http://www.example.com"
-        socks_connector = ProxyConnector.from_url(proxy.socks5)
+        socks_connector = ProxyConnector.from_url(proxy.socks5)  # type: ignore
         session = aiohttp.ClientSession(connector=socks_connector)
         logger.debug(f"Checking proxy {proxy} ..")
         try:
