@@ -4,7 +4,7 @@ import time
 
 
 async def main() -> None:
-    reader = ProxiesReader("proxies.txt", debug=True)
+    reader = ProxiesReader("proxies.txt", debug=True, extra_debug=True)
     # reader.read_with_auth()
     reader.read_with_auth()
     start = time.time()
