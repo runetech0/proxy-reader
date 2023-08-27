@@ -18,14 +18,6 @@ class ProxiesReader:
         self._file_path = file_path
         self._debug = debug
         self._extra_debug = extra_debug
-        if not self._debug:
-
-            try:
-                os.remove(file_handler.baseFilename)
-            except Exception:
-                pass
-            logger.removeHandler(file_handler)
-            logger.removeHandler(console_handler)
 
         self._shuffle = shuffle
         self._proxies: ProxiesList = []
@@ -35,6 +27,28 @@ class ProxiesReader:
         self._proxies_checked = False
         self._proxy_iterator: Optional[ProxyiesGen] = None
         self._proxy_iterator_cycle: Optional[ProxyiesGen] = None
+        self._thread_control: asyncio.Semaphore = asyncio.Semaphore(500)
+        self._max_response_time = 60
+        self._timeout_count = 0
+
+        self._check_urls = [
+            "https://duckduckgo.com/manifest.json",
+            "https://duckduckgo.com/favicon.ico",
+            "https://duckduckgo.com/ti6.js",
+            "https://duckduckgo.com/locale/en_US/duckduckgo14.js",
+            "https://duckduckgo.com/lib/l132.js",
+            "https://duckduckgo.com/b203.js",
+            "https://duckduckgo.com/tl7.js",
+            "https://duckduckgo.com/post3.html",
+        ]
+
+        if not self._debug:
+            logger.removeHandler(file_handler)
+            logger.removeHandler(console_handler)
+            try:
+                os.remove(file_handler.baseFilename)
+            except Exception:
+                pass
 
     @property
     def total(self) -> int:
@@ -74,6 +88,9 @@ class ProxiesReader:
         lines = open(self._file_path).readlines()
         return [line.strip().replace("\n", "") for line in lines]
 
+    def random_url(self) -> str:
+        return random.choice(self._check_urls)
+
     def read_with_auth(self) -> None:
         """Format: IP:PORT:USERNAME:PASSWORD"""
         raw_proxies = self.read_raw()
@@ -101,41 +118,44 @@ class ProxiesReader:
             random.shuffle(self._proxies)
 
     async def _check_proxy(self, proxy: Proxy, response_time: Optional[int] = None) -> bool:
-        p = proxy.http
-        logger.debug(f"Checking proxy {p} ..")
-        url = "https://www.example.com"
         limit = 100
         if "win" in sys.platform:
             # It's fucking windows so we need to limit the paralled connection now.
             limit = 60
         connector = aiohttp.TCPConnector(limit=limit)
         session = aiohttp.ClientSession(connector=connector)
-        try:
-            resp = await asyncio.wait_for(session.get(url, proxy=p), timeout=response_time)
+        url = self.random_url()
+        p = proxy.http
+        async with self._thread_control:
+            logger.debug(f"Checking proxy {p} ..")
+            try:
+                # resp = await asyncio.wait_for(session.get(url, proxy=p), timeout=self._max_response_time)
+                resp = await session.get(url, timeout=self._max_response_time, proxy=p)
+                await resp.read()
+                await session.close()
 
-        except asyncio.TimeoutError:
-            logger.debug(f"{p} : TIMEOUT: Not working.")
-            self._bad_proxies.append(proxy)
-            await session.close()
-            return False
+            except asyncio.TimeoutError as e:
+                self._timeout_count += 1
+                logger.debug(f"{p} : TIMEOUT {e}. {url}")
+                self._bad_proxies.append(proxy)
+                await session.close()
+                return False
 
-        except Exception as e:
-            logger.debug(f"Bad proxy raised. {e}", exc_info=self._extra_debug)
-            await session.close()
-            return False
+            except Exception as e:
+                logger.debug(f"Bad proxy raised. {e}", exc_info=self._extra_debug)
+                await session.close()
+                return False
 
-        await resp.read()
-        await session.close()
-        if resp.status == 200:
-            logger.debug(f"{p}: Working")
-            self._working_proxies.append(proxy)
+            if resp.status == 200:
+                logger.debug(f"{p}: Working")
+                self._working_proxies.append(proxy)
 
-        else:
-            logger.debug(f"{p}: Not Working")
-            self._bad_proxies.append(proxy)
-        return True
+            else:
+                logger.debug(f"{p}: Not Working. Response code: {resp.status}")
+                self._bad_proxies.append(proxy)
+            return True
 
-    async def check_all_proxies(self, max_resp_time: int = 5) -> None:
+    async def check_all_proxies(self, max_resp_time: int = 30) -> None:
         """Run this to check all proxies at once."""
         tasks: List[asyncio.Task[bool]] = []
         for proxy in self._proxies:
@@ -186,10 +206,7 @@ class ProxiesReader:
     def get_working_proxies_list_http(self) -> List[str]:
         working_list: List[str] = []
         for proxy in self._working_proxies:
-            if self._has_auth:
-                working_list.append(f"{proxy.ip}:{proxy.port}:{proxy.username}:{proxy.password}")
-            else:
-                working_list.append(f"{proxy.ip}:{proxy.port}")
+            working_list.append(proxy.http)
         return working_list
 
     def write_working_proxies(self, filename: str) -> None:
