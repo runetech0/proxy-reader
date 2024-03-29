@@ -1,0 +1,336 @@
+[
+    {
+        "label": "TypedDict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "NotRequired",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Iterator",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "TypeAlias",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Any",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Any",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "logging",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "logging",
+        "description": "logging",
+        "detail": "logging",
+        "documentation": {}
+    },
+    {
+        "label": "RotatingFileHandler",
+        "importPath": "logging.handlers",
+        "description": "logging.handlers",
+        "isExtraImport": true,
+        "detail": "logging.handlers",
+        "documentation": {}
+    },
+    {
+        "label": "random",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "random",
+        "description": "random",
+        "detail": "random",
+        "documentation": {}
+    },
+    {
+        "label": "itertools",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "itertools",
+        "description": "itertools",
+        "detail": "itertools",
+        "documentation": {}
+    },
+    {
+        "label": "aiohttp",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "aiohttp",
+        "description": "aiohttp",
+        "detail": "aiohttp",
+        "documentation": {}
+    },
+    {
+        "label": "asyncio",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "asyncio",
+        "description": "asyncio",
+        "detail": "asyncio",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "ProxyConnector",
+        "importPath": "aiohttp_socks",
+        "description": "aiohttp_socks",
+        "isExtraImport": true,
+        "detail": "aiohttp_socks",
+        "documentation": {}
+    },
+    {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "ProxiesReader",
+        "importPath": "proxy_reader",
+        "description": "proxy_reader",
+        "isExtraImport": true,
+        "detail": "proxy_reader",
+        "documentation": {}
+    },
+    {
+        "label": "ProxiesReader",
+        "importPath": "proxy_reader",
+        "description": "proxy_reader",
+        "isExtraImport": true,
+        "detail": "proxy_reader",
+        "documentation": {}
+    },
+    {
+        "label": "time",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "time",
+        "description": "time",
+        "detail": "time",
+        "documentation": {}
+    },
+    {
+        "label": "__major__",
+        "kind": 5,
+        "importPath": "proxy_reader._metadata",
+        "description": "proxy_reader._metadata",
+        "peekOfCode": "__major__ = \"0\"\n__minor__ = \"1\"\n__patch__ = \"2\"\n__version__ = f\"{__major__}.{__minor__}.{__patch__}\"",
+        "detail": "proxy_reader._metadata",
+        "documentation": {}
+    },
+    {
+        "label": "__minor__",
+        "kind": 5,
+        "importPath": "proxy_reader._metadata",
+        "description": "proxy_reader._metadata",
+        "peekOfCode": "__minor__ = \"1\"\n__patch__ = \"2\"\n__version__ = f\"{__major__}.{__minor__}.{__patch__}\"",
+        "detail": "proxy_reader._metadata",
+        "documentation": {}
+    },
+    {
+        "label": "__patch__",
+        "kind": 5,
+        "importPath": "proxy_reader._metadata",
+        "description": "proxy_reader._metadata",
+        "peekOfCode": "__patch__ = \"2\"\n__version__ = f\"{__major__}.{__minor__}.{__patch__}\"",
+        "detail": "proxy_reader._metadata",
+        "documentation": {}
+    },
+    {
+        "label": "__version__",
+        "kind": 5,
+        "importPath": "proxy_reader._metadata",
+        "description": "proxy_reader._metadata",
+        "peekOfCode": "__version__ = f\"{__major__}.{__minor__}.{__patch__}\"",
+        "detail": "proxy_reader._metadata",
+        "documentation": {}
+    },
+    {
+        "label": "TelegramHTTP",
+        "kind": 6,
+        "importPath": "proxy_reader._types",
+        "description": "proxy_reader._types",
+        "peekOfCode": "class TelegramHTTP(TypedDict):\n    proxy_type: int\n    addr: str\n    port: int\n    username: NotRequired[str]\n    password: NotRequired[str]\nProxiesList: TypeAlias = List[Proxy]\nProxyiesGen: TypeAlias = Iterator[Proxy]",
+        "detail": "proxy_reader._types",
+        "documentation": {}
+    },
+    {
+        "label": "DOMAINS",
+        "kind": 5,
+        "importPath": "proxy_reader.domains",
+        "description": "proxy_reader.domains",
+        "peekOfCode": "DOMAINS = \"\"\"\ngoogle.com\nfacebook.com\ndoubleclick.net\ngoogle-analytics.com\nakamaihd.net\ngooglesyndication.com\ngoogleapis.com\ngoogleadservices.com\nfacebook.net",
+        "detail": "proxy_reader.domains",
+        "documentation": {}
+    },
+    {
+        "label": "filename",
+        "kind": 5,
+        "importPath": "proxy_reader.logger",
+        "description": "proxy_reader.logger",
+        "peekOfCode": "filename = \"proxy_reader.log\"\nlogging_format = logging.Formatter(\n    \"%(levelname)s:[%(filename)s:%(lineno)s]:%(asctime)s: %(message)s\")\nlogger = logging.getLogger(__name__)\nconsole_handler = logging.StreamHandler()\nconsole_handler.setFormatter(logging_format)\nfile_handler = RotatingFileHandler(filename, mode='a', maxBytes=5 * 1024 * 1024,\n                                   backupCount=2, encoding=\"utf-8\", delay=False)\nfile_handler.setFormatter(logging_format)\nlogger.setLevel(logging.DEBUG)",
+        "detail": "proxy_reader.logger",
+        "documentation": {}
+    },
+    {
+        "label": "logging_format",
+        "kind": 5,
+        "importPath": "proxy_reader.logger",
+        "description": "proxy_reader.logger",
+        "peekOfCode": "logging_format = logging.Formatter(\n    \"%(levelname)s:[%(filename)s:%(lineno)s]:%(asctime)s: %(message)s\")\nlogger = logging.getLogger(__name__)\nconsole_handler = logging.StreamHandler()\nconsole_handler.setFormatter(logging_format)\nfile_handler = RotatingFileHandler(filename, mode='a', maxBytes=5 * 1024 * 1024,\n                                   backupCount=2, encoding=\"utf-8\", delay=False)\nfile_handler.setFormatter(logging_format)\nlogger.setLevel(logging.DEBUG)\nfile_handler.setLevel(logging.DEBUG)",
+        "detail": "proxy_reader.logger",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "proxy_reader.logger",
+        "description": "proxy_reader.logger",
+        "peekOfCode": "logger = logging.getLogger(__name__)\nconsole_handler = logging.StreamHandler()\nconsole_handler.setFormatter(logging_format)\nfile_handler = RotatingFileHandler(filename, mode='a', maxBytes=5 * 1024 * 1024,\n                                   backupCount=2, encoding=\"utf-8\", delay=False)\nfile_handler.setFormatter(logging_format)\nlogger.setLevel(logging.DEBUG)\nfile_handler.setLevel(logging.DEBUG)\nconsole_handler.setLevel(logging.DEBUG)\nlogger.addHandler(console_handler)",
+        "detail": "proxy_reader.logger",
+        "documentation": {}
+    },
+    {
+        "label": "console_handler",
+        "kind": 5,
+        "importPath": "proxy_reader.logger",
+        "description": "proxy_reader.logger",
+        "peekOfCode": "console_handler = logging.StreamHandler()\nconsole_handler.setFormatter(logging_format)\nfile_handler = RotatingFileHandler(filename, mode='a', maxBytes=5 * 1024 * 1024,\n                                   backupCount=2, encoding=\"utf-8\", delay=False)\nfile_handler.setFormatter(logging_format)\nlogger.setLevel(logging.DEBUG)\nfile_handler.setLevel(logging.DEBUG)\nconsole_handler.setLevel(logging.DEBUG)\nlogger.addHandler(console_handler)\nlogger.addHandler(file_handler)",
+        "detail": "proxy_reader.logger",
+        "documentation": {}
+    },
+    {
+        "label": "file_handler",
+        "kind": 5,
+        "importPath": "proxy_reader.logger",
+        "description": "proxy_reader.logger",
+        "peekOfCode": "file_handler = RotatingFileHandler(filename, mode='a', maxBytes=5 * 1024 * 1024,\n                                   backupCount=2, encoding=\"utf-8\", delay=False)\nfile_handler.setFormatter(logging_format)\nlogger.setLevel(logging.DEBUG)\nfile_handler.setLevel(logging.DEBUG)\nconsole_handler.setLevel(logging.DEBUG)\nlogger.addHandler(console_handler)\nlogger.addHandler(file_handler)",
+        "detail": "proxy_reader.logger",
+        "documentation": {}
+    },
+    {
+        "label": "Proxy",
+        "kind": 6,
+        "importPath": "proxy_reader.proxy",
+        "description": "proxy_reader.proxy",
+        "peekOfCode": "class Proxy:\n    def __init__(self, ip: str, port: str, username: Optional[str] = None, password: Optional[str] = None) -> None:\n        self._ip = ip\n        self._port = port\n        self._username = username\n        self._password = password\n    @property\n    def ip(self) -> str:\n        return self._ip\n    @property",
+        "detail": "proxy_reader.proxy",
+        "documentation": {}
+    },
+    {
+        "label": "ProxiesReader",
+        "kind": 6,
+        "importPath": "proxy_reader.reader",
+        "description": "proxy_reader.reader",
+        "peekOfCode": "class ProxiesReader:\n    def __init__(\n        self,\n        file_path: str = \"./proxies.txt\",\n        shuffle: bool = False,\n        debug: bool = False,\n        extra_debug: bool = False,\n    ) -> None:\n        self._file_path = file_path\n        self._debug = debug",
+        "detail": "proxy_reader.reader",
+        "documentation": {}
+    },
+    {
+        "label": "lines",
+        "kind": 5,
+        "importPath": "format",
+        "description": "format",
+        "peekOfCode": "lines = open(\"proxies.txt\", encoding=\"utf-8\").readlines()\nformatted: list[str] = []\nfor line in lines:\n    s_line = line.strip().split(\":\")\n    p = f\"{s_line[2]}:{s_line[3]}@{s_line[0]}:{s_line[1]}\"\n    formatted.append(p)\nwith open(\"formatted.txt\", encoding=\"utf-8\", mode=\"w\") as f:\n    f.write(\"\\n\".join(formatted))",
+        "detail": "format",
+        "documentation": {}
+    }
+]

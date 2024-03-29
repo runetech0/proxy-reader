@@ -13,7 +13,11 @@ from ._types import ProxiesList, ProxyiesGen
 
 class ProxiesReader:
     def __init__(
-        self, file_path: str = "./proxies.txt", shuffle: bool = False, debug: bool = False, extra_debug: bool = False
+        self,
+        file_path: str = "./proxies.txt",
+        shuffle: bool = False,
+        debug: bool = False,
+        extra_debug: bool = False,
     ) -> None:
         self._file_path = file_path
         self._debug = debug
@@ -32,15 +36,20 @@ class ProxiesReader:
         self._timeout_count = 0
 
         self._check_urls = [
-            "https://duckduckgo.com/manifest.json",
-            "https://duckduckgo.com/favicon.ico",
-            "https://duckduckgo.com/ti6.js",
-            "https://duckduckgo.com/locale/en_US/duckduckgo14.js",
-            "https://duckduckgo.com/lib/l132.js",
-            "https://duckduckgo.com/b203.js",
-            "https://duckduckgo.com/tl7.js",
-            "https://duckduckgo.com/post3.html",
-            # "https://www.cloudflare.com/cdn-cgi/trace",
+            # New
+            "https://checkip.amazonaws.com",
+            "https://ipinfo.io/ip",
+            "https://icanhazip.com",
+            "https://api.ipify.org",
+            "https://ifconfig.co/ip",
+            "https://ipapi.co/ip",
+            "https://ident.me",
+            "https://api64.ipify.org?format=json",
+            "https://ifconfig.me/ip",
+            "https://www.trackip.net/ip",
+            "https://api.adviceslip.com/advice",
+            "https://api.thecatapi.com/v1/images/search",
+            "https://dog.ceo/api/breeds/image/random",
         ]
 
         if not self._debug:
@@ -115,11 +124,15 @@ class ProxiesReader:
             ip = sp_proxy[0]
             port = sp_proxy[1]
             self._proxies.append(Proxy(ip, port))
-        logger.debug(f"Loaded total {len(self._proxies)} proxies from {self._file_path}")
+        logger.debug(
+            f"Loaded total {len(self._proxies)} proxies from {self._file_path}"
+        )
         if self._shuffle:
             random.shuffle(self._proxies)
 
-    async def _check_proxy(self, proxy: Proxy, response_time: Optional[int] = None) -> bool:
+    async def _check_proxy(
+        self, proxy: Proxy, response_time: Optional[int] = None
+    ) -> bool:
         limit = 100
 
         if "win" in sys.platform:
@@ -135,7 +148,9 @@ class ProxiesReader:
             logger.debug(f"Checking proxy {p} ..")
             try:
                 # resp = await asyncio.wait_for(session.get(url, proxy=p), timeout=self._max_response_time)
-                resp = await session.get(url, timeout=self._max_response_time, proxy=p, ssl=False)
+                resp = await session.get(
+                    url, timeout=self._max_response_time, proxy=p, ssl=False
+                )
                 # await resp.read()
                 await session.close()
 
@@ -170,7 +185,9 @@ class ProxiesReader:
         self._proxies_checked = True
         logger.debug("All proxies checked.")
 
-    async def _check_proxy_socks(self, proxy: Proxy, response_time: Optional[int] = None) -> bool:
+    async def _check_proxy_socks(
+        self, proxy: Proxy, response_time: Optional[int] = None
+    ) -> bool:
         url = "http://www.example.com"
         socks_connector = ProxyConnector.from_url(proxy.socks5)  # type: ignore
         session = aiohttp.ClientSession(connector=socks_connector)
@@ -204,7 +221,9 @@ class ProxiesReader:
         """Run the check on all proxies at once."""
         tasks: List[asyncio.Task[bool]] = []
         for proxy in self._proxies:
-            tasks.append(asyncio.create_task(self._check_proxy_socks(proxy, max_resp_time)))
+            tasks.append(
+                asyncio.create_task(self._check_proxy_socks(proxy, max_resp_time))
+            )
         await asyncio.gather(*tasks)
         self._proxies_checked = True
         logger.debug("All proxies checked.")
@@ -278,7 +297,9 @@ class ProxiesReader:
         """Get next proxy from proxies cycle"""
 
         if self._proxy_iterator_cycle is None:
-            self._proxy_iterator_cycle = self.__proxies_gen(self._working_proxies, cycle_proxies=True)
+            self._proxy_iterator_cycle = self.__proxies_gen(
+                self._working_proxies, cycle_proxies=True
+            )
         return str(next(self._proxy_iterator_cycle).socks5)
 
     def next_http_telegram_from_list(self) -> Dict[str, Any]:
@@ -292,13 +313,17 @@ class ProxiesReader:
         """Get next proxy from proxies cycle"""
 
         if self._proxy_iterator is None:
-            self._proxy_iterator = self.__proxies_gen(self._working_proxies, cycle_proxies=True)
+            self._proxy_iterator = self.__proxies_gen(
+                self._working_proxies, cycle_proxies=True
+            )
         return dict(next(self._proxy_iterator).telegram_http)
 
     def next_socks5_telegram_from_cycle(self) -> Dict[str, Any]:
         """Get next proxy from proxies cycle"""
         if self._proxy_iterator_cycle is None:
-            self._proxy_iterator_cycle = self.__proxies_gen(self._working_proxies, cycle_proxies=True)
+            self._proxy_iterator_cycle = self.__proxies_gen(
+                self._working_proxies, cycle_proxies=True
+            )
         return dict(next(self._proxy_iterator_cycle).telegram_socks5)
 
     def next_socks5_telegram_from_list(self) -> Dict[str, Any]:
@@ -320,11 +345,15 @@ class ProxiesReader:
         """Get next proxy from proxies cycle"""
 
         if not self._proxy_iterator_cycle:
-            self._proxy_iterator_cycle = self.__proxies_gen(self._working_proxies, cycle_proxies=True)
+            self._proxy_iterator_cycle = self.__proxies_gen(
+                self._working_proxies, cycle_proxies=True
+            )
 
         return str(next(self._proxy_iterator_cycle).https)
 
-    def __proxies_gen(self, proxies_list: List[Proxy], cycle_proxies: bool = False) -> ProxyiesGen:
+    def __proxies_gen(
+        self, proxies_list: List[Proxy], cycle_proxies: bool = False
+    ) -> ProxyiesGen:
         if cycle_proxies:
             for proxy in itertools.cycle(self._working_proxies):
                 yield proxy
