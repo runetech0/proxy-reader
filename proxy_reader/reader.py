@@ -9,12 +9,13 @@ from aiohttp_socks import ProxyConnector  # pyright: ignore[reportMissingTypeStu
 import sys
 from typing import Optional, List, Dict, Any
 from ._types import ProxiesList, ProxyiesGen
+from .protocols.reader import ProxiesReaderProtocol
 
 
-class ProxiesReader:
+class ProxiesReader(ProxiesReaderProtocol):
     def __init__(
         self,
-        file_path: str = "./proxies.txt",
+        file_path: str = "proxies.txt",
         shuffle: bool = False,
         debug: bool = False,
         extra_debug: bool = False,
@@ -37,19 +38,19 @@ class ProxiesReader:
 
         self._check_urls = [
             # New
-            "https://checkip.amazonaws.com",
-            "https://ipinfo.io/ip",
-            "https://icanhazip.com",
-            "https://api.ipify.org",
-            "https://ifconfig.co/ip",
-            "https://ipapi.co/ip",
-            "https://ident.me",
-            "https://api64.ipify.org?format=json",
-            "https://ifconfig.me/ip",
-            "https://www.trackip.net/ip",
-            "https://api.adviceslip.com/advice",
-            "https://api.thecatapi.com/v1/images/search",
-            "https://dog.ceo/api/breeds/image/random",
+            "http://checkip.amazonaws.com",
+            "http://ipinfo.io/ip",
+            "http://icanhazip.com",
+            "http://api.ipify.org",
+            "http://ifconfig.co/ip",
+            # "http://ipapi.co/ip",
+            "http://ident.me",
+            "http://api64.ipify.org?format=json",
+            "http://ifconfig.me/ip",
+            "http://www.trackip.net/ip",
+            # "http://api.adviceslip.com/advice",
+            # "http://api.thecatapi.com/v1/images/search",
+            # "http://dog.ceo/api/breeds/image/random",
         ]
 
         if not self._debug:
@@ -133,13 +134,8 @@ class ProxiesReader:
     async def _check_proxy(
         self, proxy: Proxy, response_time: Optional[int] = None
     ) -> bool:
-        limit = 100
-
-        if "win" in sys.platform:
-            # It's fucking windows so we need to limit the number of parallel connections now.
-            limit = 60
-
-        connector = aiohttp.TCPConnector(limit=limit)
+        connectins_limit = 60 if "win" in sys.platform else 100
+        connector = aiohttp.TCPConnector(limit=connectins_limit)
         session = aiohttp.ClientSession(connector=connector)
         url = self.random_url()
         p = proxy.http
@@ -149,10 +145,12 @@ class ProxiesReader:
             try:
                 # resp = await asyncio.wait_for(session.get(url, proxy=p), timeout=self._max_response_time)
                 resp = await session.get(
-                    url, timeout=self._max_response_time, proxy=p, ssl=False
+                    url,
+                    timeout=aiohttp.ClientTimeout(self._max_response_time),
+                    proxy=p,
+                    ssl=False,
                 )
                 # await resp.read()
-                await session.close()
 
             except asyncio.TimeoutError as e:
                 self._timeout_count += 1
@@ -188,7 +186,7 @@ class ProxiesReader:
     async def _check_proxy_socks(
         self, proxy: Proxy, response_time: Optional[int] = None
     ) -> bool:
-        url = "http://www.example.com"
+        url = self.random_url()
         socks_connector = ProxyConnector.from_url(proxy.socks5)  # type: ignore
         session = aiohttp.ClientSession(connector=socks_connector)
         logger.debug(f"Checking proxy {proxy} ..")

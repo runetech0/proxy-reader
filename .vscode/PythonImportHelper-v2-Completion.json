@@ -1,5 +1,45 @@
 [
     {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Any",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Protocol",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "TypedDict",
         "importPath": "typing",
         "description": "typing",
@@ -208,6 +248,15 @@
         "documentation": {}
     },
     {
+        "label": "ProxiesReaderProtocol",
+        "kind": 6,
+        "importPath": "proxy_reader.protocols.reader",
+        "description": "proxy_reader.protocols.reader",
+        "peekOfCode": "class ProxiesReaderProtocol(Protocol):\n    @property\n    def total(self) -> int:\n        pass\n    @property\n    def total_working(self) -> int:\n        pass\n    @property\n    def total_bad(self) -> int:\n        pass",
+        "detail": "proxy_reader.protocols.reader",
+        "documentation": {}
+    },
+    {
         "label": "__major__",
         "kind": 5,
         "importPath": "proxy_reader._metadata",
@@ -320,7 +369,7 @@
         "kind": 6,
         "importPath": "proxy_reader.reader",
         "description": "proxy_reader.reader",
-        "peekOfCode": "class ProxiesReader:\n    def __init__(\n        self,\n        file_path: str = \"./proxies.txt\",\n        shuffle: bool = False,\n        debug: bool = False,\n        extra_debug: bool = False,\n    ) -> None:\n        self._file_path = file_path\n        self._debug = debug",
+        "peekOfCode": "class ProxiesReader(ProxiesReaderProtocol):\n    def __init__(\n        self,\n        file_path: str = \"proxies.txt\",\n        shuffle: bool = False,\n        debug: bool = False,\n        extra_debug: bool = False,\n    ) -> None:\n        self._file_path = file_path\n        self._debug = debug",
         "detail": "proxy_reader.reader",
         "documentation": {}
     },
