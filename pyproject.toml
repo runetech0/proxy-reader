@@ -10,11 +10,19 @@ build-backend = "setuptools.build_meta"
 
 name = "proxy-reader"
 version = "0.1.0"
+description = "Read and check bulk proxies effectively"
+authors = [
+    {name = "Rune Tech", email = "runetech2024@gmail.com"}
+]
+
+license = { file = "LICENSE" }
+readme = "README.md"
 
 dependencies = [
-    "aiohtp >= 3.10.10", 
+    "aiohttp >= 3.10.10", 
     "aiohttp_socks >= 0.9.0",
 ]
+requires-python = ">=3.11"
 
 keywords = ["proxies" ,"proxy", "reader", "checker", "bulk"]
 

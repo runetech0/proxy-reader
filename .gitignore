@@ -6,3 +6,6 @@ check_proxies.py
 format.py
 .vscode
 .mypy_cache
+*egg*
+dist
+build
