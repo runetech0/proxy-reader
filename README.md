@@ -13,3 +13,6 @@ It has iterators to iterate the proxies for easy reading.
 [v0.2.0] - 2024-10-21
 
 *   Previous unrecorded changes
+
+
+For more info/queries Telegram: [@runetech](https://t.me/runetech)
