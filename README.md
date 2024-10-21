@@ -9,3 +9,7 @@ It has iterators to iterate the proxies for easy reading.
 
 
 ## Changelogs
+
+[v0.2.0] - 2024-10-21
+
+*   Previous unrecorded changes
