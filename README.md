@@ -8,6 +8,12 @@ these proxies before using them.
 It has iterators to iterate the proxies for easy reading.
 
 
+## Installation
+
+```
+pip install proxy-reader
+```
+
 ## Changelogs
 
 [v0.2.0] - 2024-10-21
