@@ -16,7 +16,7 @@ pip install proxy-reader
 
 ## Changelogs
 
-[v0.2.0] - 2024-10-21
+### [v0.2.0] - 2024-10-21
 
 *   Previous unrecorded changes
 
