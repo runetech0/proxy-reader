@@ -1,7 +1,8 @@
+import os
 import random
 import itertools
+import tempfile
 import warnings
-
 from .utils import parse_proxy_line
 from .proxy import Proxy
 import aiohttp
@@ -17,18 +18,18 @@ from .protocols.reader import ProxiesReaderProtocol
 class ProxiesReader(ProxiesReaderProtocol):
     def __init__(
         self,
-        proxies: list[str],
+        proxies_file: str,
         check_proxies: bool = False,
         proxy_checking_threads: int = 50,
         max_response_time: int = 60,
         shuffle: bool = False,
     ) -> None:
-        self._raw_proxies = proxies
+        self._raw_proxies = open(proxies_file, encoding="utf-8", mode="r").readlines()
         self._check_proxies = check_proxies
 
         self._shuffle = shuffle
         self._proxies_dict_list: list[ProxyDictT] = [
-            parse_proxy_line(p) for p in proxies
+            parse_proxy_line(p) for p in self._raw_proxies
         ]
         self._all_proxies: ProxiesList = [Proxy(p) for p in self._proxies_dict_list]
 
@@ -61,21 +62,34 @@ class ProxiesReader(ProxiesReaderProtocol):
         ]
 
     @classmethod
-    def load_from_file(
+    def load_list(
         cls,
-        file: str = "proxies.txt",
+        proxies: list[str],
         check_proxies: bool = False,
         proxy_checking_threads: int = 50,
         max_response_time: int = 60,
         shuffle: bool = False,
     ) -> "ProxiesReader":
-        return cls(
-            open(file).readlines(),
-            check_proxies,
-            proxy_checking_threads,
-            max_response_time,
-            shuffle,
+        """Load proxies from a list"""
+        proxies_file = tempfile.NamedTemporaryFile(
+            delete=False, suffix=".txt", mode="w+"
         )
+        try:
+            proxies_file.write("\n".join(proxies))
+            proxies_file.flush()
+            new = cls(
+                proxies_file.name,
+                check_proxies,
+                proxy_checking_threads,
+                max_response_time,
+                shuffle,
+            )
+
+        finally:
+            proxies_file.close()
+            os.unlink(proxies_file.name)
+
+        return new
 
     @property
     def total(self) -> int:
