@@ -1,40 +1,47 @@
 import random
 import itertools
+import warnings
+
+from .utils import parse_proxy_line
 from .proxy import Proxy
 import aiohttp
 import asyncio
-from .logger import logger, console_handler, file_handler
-import os
+from .logs_config import logger
 from aiohttp_socks import ProxyConnector
 import sys
 from typing import Optional, List, Dict, Any
-from ._types import ProxiesList, ProxyiesGen
+from ._types import ProxiesList, ProxyDictT, ProxyiesGen
 from .protocols.reader import ProxiesReaderProtocol
 
 
 class ProxiesReader(ProxiesReaderProtocol):
     def __init__(
         self,
-        file_path: str = "proxies.txt",
+        proxies: list[str],
+        check_proxies: bool = False,
+        proxy_checking_threads: int = 50,
+        max_response_time: int = 60,
         shuffle: bool = False,
-        debug: bool = False,
-        extra_debug: bool = False,
     ) -> None:
-        self._file_path = file_path
-        self._debug = debug
-        self._extra_debug = extra_debug
+        self._raw_proxies = proxies
+        self._check_proxies = check_proxies
 
         self._shuffle = shuffle
-        self._proxies: ProxiesList = []
-        self._has_auth = False
+        self._proxies_dict_list: list[ProxyDictT] = [
+            parse_proxy_line(p) for p in proxies
+        ]
+        self._all_proxies: ProxiesList = [Proxy(p) for p in self._proxies_dict_list]
+
         self._bad_proxies: ProxiesList = []
         self._working_proxies: ProxiesList = []
-        self._proxies_checked = False
         self._proxy_iterator: Optional[ProxyiesGen] = None
         self._proxy_iterator_cycle: Optional[ProxyiesGen] = None
-        self._thread_control: asyncio.Semaphore = asyncio.Semaphore(500)
-        self._max_response_time = 60
+        self._thread_control: asyncio.Semaphore = asyncio.Semaphore(
+            proxy_checking_threads
+        )
+        self._max_response_time = max_response_time
         self._timeout_count = 0
+        self._proxies_checked = False
 
         self._check_urls = [
             # New
@@ -53,17 +60,26 @@ class ProxiesReader(ProxiesReaderProtocol):
             # "http://dog.ceo/api/breeds/image/random",
         ]
 
-        if not self._debug:
-            logger.removeHandler(file_handler)
-            logger.removeHandler(console_handler)
-            try:
-                os.remove(file_handler.baseFilename)
-            except Exception:
-                pass
+    @classmethod
+    def load_from_file(
+        cls,
+        file: str = "proxies.txt",
+        check_proxies: bool = False,
+        proxy_checking_threads: int = 50,
+        max_response_time: int = 60,
+        shuffle: bool = False,
+    ) -> "ProxiesReader":
+        return cls(
+            open(file).readlines(),
+            check_proxies,
+            proxy_checking_threads,
+            max_response_time,
+            shuffle,
+        )
 
     @property
     def total(self) -> int:
-        return len(self._proxies)
+        return len(self._all_proxies)
 
     @property
     def total_working(self) -> int:
@@ -75,7 +91,7 @@ class ProxiesReader(ProxiesReaderProtocol):
 
     @property
     def proxies(self) -> ProxiesList:
-        return self._proxies
+        return self._all_proxies
 
     @property
     def bad_proxies(self) -> ProxiesList:
@@ -90,46 +106,48 @@ class ProxiesReader(ProxiesReaderProtocol):
         self._working_proxies = working_proxies
 
     def __str__(self) -> str:
-        return str(self._proxies)
+        return str(self._all_proxies)
 
     def __repr__(self) -> str:
         return self.__str__()
 
-    def read_raw(self) -> List[str]:
-        lines = open(self._file_path).readlines()
-        return [line.strip().replace("\n", "") for line in lines]
-
-    def random_url(self) -> str:
+    def _random_proxy_check_url(self) -> str:
         return random.choice(self._check_urls)
 
     def read_with_auth(self) -> None:
         """Format: IP:PORT:USERNAME:PASSWORD"""
-        raw_proxies = self.read_raw()
+        return warnings.warn(
+            "read_with_auth is deprecated. Please don't use it. It's not working ...",
+        )
+        raw_proxies = self._read_raw()
         for proxy in raw_proxies:
             sp_proxy = proxy.split(":")
             ip = sp_proxy[0]
             port = sp_proxy[1]
             username = sp_proxy[2]
             password = sp_proxy[3]
-            self._proxies.append(Proxy(ip, port, username, password))
+            self._all_proxies.append(Proxy(ip, port, username, password))
 
         self._has_auth = True
         if self._shuffle:
-            random.shuffle(self._proxies)
+            random.shuffle(self._all_proxies)
 
     def read_authless(self) -> None:
         """Format: IP:PORT"""
-        raw_proxies = self.read_raw()
+        return warnings.warn(
+            "read_authless is deprecated. Please don't use it. It's not working ..."
+        )
+        raw_proxies = self._read_raw()
         for proxy in raw_proxies:
             sp_proxy = proxy.split(":")
             ip = sp_proxy[0]
             port = sp_proxy[1]
-            self._proxies.append(Proxy(ip, port))
+            self._all_proxies.append(Proxy(ip, port))
         logger.debug(
-            f"Loaded total {len(self._proxies)} proxies from {self._file_path}"
+            f"Loaded total {len(self._all_proxies)} proxies from {self._file_path}"
         )
         if self._shuffle:
-            random.shuffle(self._proxies)
+            random.shuffle(self._all_proxies)
 
     async def _check_proxy(
         self, proxy: Proxy, response_time: Optional[int] = None
@@ -137,7 +155,7 @@ class ProxiesReader(ProxiesReaderProtocol):
         connectins_limit = 60 if "win" in sys.platform else 100
         connector = aiohttp.TCPConnector(limit=connectins_limit)
         session = aiohttp.ClientSession(connector=connector)
-        url = self.random_url()
+        url = self._random_proxy_check_url()
         p = proxy.http
 
         async with self._thread_control:
@@ -156,13 +174,16 @@ class ProxiesReader(ProxiesReaderProtocol):
                 self._timeout_count += 1
                 logger.debug(f"{p} : TIMEOUT {e}. {url}")
                 self._bad_proxies.append(proxy)
+                await connector.close()
                 await session.close()
                 return False
 
             except Exception as e:
-                logger.debug(f"Bad proxy raised. {e}", exc_info=self._extra_debug)
-                await session.close()
+                logger.debug(f"Bad proxy raised. {e}", exc_info=True)
                 return False
+
+            finally:
+                await session.close()
 
             if resp.status == 200:
                 logger.debug(f"{p}: Working")
@@ -176,19 +197,18 @@ class ProxiesReader(ProxiesReaderProtocol):
 
     async def check_all_proxies(self, max_resp_time: int = 30) -> None:
         """Run this to check all proxies at once."""
-        tasks: List[asyncio.Task[bool]] = []
-        for proxy in self._proxies:
-            tasks.append(asyncio.create_task(self._check_proxy(proxy, max_resp_time)))
-        await asyncio.gather(*tasks)
+        async with asyncio.TaskGroup() as gp:
+            for proxy in self._all_proxies:
+                gp.create_task(self._check_proxy(proxy, max_resp_time))
         self._proxies_checked = True
         logger.debug("All proxies checked.")
 
     async def _check_proxy_socks(
         self, proxy: Proxy, response_time: Optional[int] = None
     ) -> bool:
-        url = self.random_url()
+        url = self._random_proxy_check_url()
         socks_connector = ProxyConnector.from_url(proxy.socks5)  # type: ignore
-        session = aiohttp.ClientSession(connector=socks_connector)
+        session = aiohttp.ClientSession(connector=socks_connector)  # type: ignore
         logger.debug(f"Checking proxy {proxy} ..")
         try:
             resp = await asyncio.wait_for(session.get(url), timeout=response_time)
@@ -200,7 +220,7 @@ class ProxiesReader(ProxiesReaderProtocol):
             return False
 
         except Exception as e:
-            logger.debug(f"Bad proxy raised. {e}", exc_info=self._extra_debug)
+            logger.debug(f"Bad proxy raised. {e}", exc_info=True)
             await session.close()
             return False
 
@@ -218,7 +238,7 @@ class ProxiesReader(ProxiesReaderProtocol):
     async def check_all_proxies_socks5(self, max_resp_time: int = 5) -> None:
         """Run the check on all proxies at once."""
         tasks: List[asyncio.Task[bool]] = []
-        for proxy in self._proxies:
+        for proxy in self._all_proxies:
             tasks.append(
                 asyncio.create_task(self._check_proxy_socks(proxy, max_resp_time))
             )
