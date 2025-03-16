@@ -25,8 +25,8 @@ class ProxiesReader(ProxiesReaderProtocol):
         shuffle: bool = False,
     ) -> None:
         self._raw_proxies = open(proxies_file, encoding="utf-8", mode="r").readlines()
-        self._check_proxies = check_proxies
 
+        self._check_proxies = check_proxies
         self._shuffle = shuffle
         self._proxies_dict_list: list[ProxyDictT] = [
             parse_proxy_line(p) for p in self._raw_proxies
@@ -34,7 +34,11 @@ class ProxiesReader(ProxiesReaderProtocol):
         self._all_proxies: ProxiesList = [Proxy(p) for p in self._proxies_dict_list]
 
         self._bad_proxies: ProxiesList = []
-        self._working_proxies: ProxiesList = []
+
+        self._working_proxies: ProxiesList = (
+            [] if self._check_proxies else self._all_proxies
+        )
+
         self._proxy_iterator: Optional[ProxyiesGen] = None
         self._proxy_iterator_cycle: Optional[ProxyiesGen] = None
         self._thread_control: asyncio.Semaphore = asyncio.Semaphore(
@@ -211,11 +215,12 @@ class ProxiesReader(ProxiesReaderProtocol):
 
     async def check_all_proxies(self, max_resp_time: int = 30) -> None:
         """Run this to check all proxies at once."""
-        async with asyncio.TaskGroup() as gp:
-            for proxy in self._all_proxies:
-                gp.create_task(self._check_proxy(proxy, max_resp_time))
-        self._proxies_checked = True
-        logger.debug("All proxies checked.")
+        if self._check_proxies:
+            async with asyncio.TaskGroup() as gp:
+                for proxy in self._all_proxies:
+                    gp.create_task(self._check_proxy(proxy, max_resp_time))
+            self._proxies_checked = True
+            logger.debug("All proxies checked.")
 
     async def _check_proxy_socks(
         self, proxy: Proxy, response_time: Optional[int] = None
