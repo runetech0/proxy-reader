@@ -1,7 +1,7 @@
 [project]
 name = "proxy-reader"
 version = "2.1.0"
-description = "Add your description here"
+description = "Proxy reader for Python"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -9,6 +9,12 @@ dependencies = [
     "aiohttp-socks>=0.10.1",
     "pytest>=8.4.1",
 ]
+
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
 
 [project.optional-dependencies]
 test = [
@@ -41,5 +47,10 @@ push = true
 ]
 "proxy_reader/__init__.py" = [
     "{version}",
+]
+
+[dependency-groups]
+dev = [
+    "build>=1.2.2.post1",
 ]
 
