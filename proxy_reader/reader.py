@@ -1,18 +1,20 @@
+import asyncio
+import itertools
 import os
 import random
-import itertools
+import sys
 import tempfile
 import warnings
-from .utils import parse_proxy_line
-from .proxy import Proxy
+from typing import Any
+
 import aiohttp
-import asyncio
-from .logs_config import logger
 from aiohttp_socks import ProxyConnector
-import sys
-from typing import Optional, List, Dict, Any
+
 from ._types import ProxiesList, ProxyDictT, ProxyiesGen
+from .logs_config import logger
 from .protocols.reader import ProxiesReaderProtocol
+from .proxy import Proxy
+from .utils import parse_proxy_line
 
 
 class ProxiesReader(ProxiesReaderProtocol):
@@ -39,8 +41,8 @@ class ProxiesReader(ProxiesReaderProtocol):
             [] if self._check_proxies else self._all_proxies
         )
 
-        self._proxy_iterator: Optional[ProxyiesGen] = None
-        self._proxy_iterator_cycle: Optional[ProxyiesGen] = None
+        self._proxy_iterator: ProxyiesGen | None = None
+        self._proxy_iterator_cycle: ProxyiesGen | None = None
         self._thread_control: asyncio.Semaphore = asyncio.Semaphore(
             proxy_checking_threads
         )
@@ -168,7 +170,7 @@ class ProxiesReader(ProxiesReaderProtocol):
             random.shuffle(self._all_proxies)
 
     async def _check_proxy(
-        self, proxy: Proxy, response_time: Optional[int] = None
+        self, proxy: Proxy, response_time: int | None = None
     ) -> bool:
         connectins_limit = 60 if "win" in sys.platform else 100
         connector = aiohttp.TCPConnector(limit=connectins_limit)
@@ -223,7 +225,7 @@ class ProxiesReader(ProxiesReaderProtocol):
             logger.debug("All proxies checked.")
 
     async def _check_proxy_socks(
-        self, proxy: Proxy, response_time: Optional[int] = None
+        self, proxy: Proxy, response_time: int | None = None
     ) -> bool:
         url = self._random_proxy_check_url()
         socks_connector = ProxyConnector.from_url(proxy.socks5)  # type: ignore
@@ -256,7 +258,7 @@ class ProxiesReader(ProxiesReaderProtocol):
 
     async def check_all_proxies_socks5(self, max_resp_time: int = 5) -> None:
         """Run the check on all proxies at once."""
-        tasks: List[asyncio.Task[bool]] = []
+        tasks: list[asyncio.Task[bool]] = []
         for proxy in self._all_proxies:
             tasks.append(
                 asyncio.create_task(self._check_proxy_socks(proxy, max_resp_time))
@@ -265,8 +267,8 @@ class ProxiesReader(ProxiesReaderProtocol):
         self._proxies_checked = True
         logger.debug("All proxies checked.")
 
-    def get_working_proxies_list_http(self) -> List[str]:
-        working_list: List[str] = []
+    def get_working_proxies_list_http(self) -> list[str]:
+        working_list: list[str] = []
         for proxy in self._working_proxies:
             working_list.append(proxy.http)
         return working_list
@@ -278,28 +280,28 @@ class ProxiesReader(ProxiesReaderProtocol):
             f.write("\n".join([proxy.strip() for proxy in working_list]))
         logger.debug(f"Proxies written to: {filename}")
 
-    def get_random_http(self) -> Optional[str]:
+    def get_random_http(self) -> str | None:
         _p = None
         if len(self._working_proxies) > 0:
             proxy = random.choice(self._working_proxies)
             _p = proxy.http
         return _p
 
-    def get_random_socks5(self) -> Optional[str]:
+    def get_random_socks5(self) -> str | None:
         _p = None
         if len(self._working_proxies) > 0:
             proxy = random.choice(self._working_proxies)
             _p = proxy.socks5
         return _p
 
-    def get_random_socks5_telegram(self) -> Optional[Dict[str, Any]]:
+    def get_random_socks5_telegram(self) -> dict[str, Any] | None:
         _p = None
         if len(self._working_proxies) > 0:
             proxy = random.choice(self._working_proxies)
             _p = proxy.telegram_socks5
         return _p
 
-    def next_http_from_list(self) -> Optional[str]:
+    def next_http_from_list(self) -> str | None:
         """Get next proxy from proxies list"""
 
         def __iter() -> ProxyiesGen:
@@ -339,14 +341,14 @@ class ProxiesReader(ProxiesReaderProtocol):
             )
         return str(next(self._proxy_iterator_cycle).socks5)
 
-    def next_http_telegram_from_list(self) -> Dict[str, Any]:
+    def next_http_telegram_from_list(self) -> dict[str, Any]:
         """Get next proxy from proxies list"""
 
         if self._proxy_iterator is None:
             self._proxy_iterator = self.__proxies_gen(self._working_proxies)
         return dict(next(self._proxy_iterator).telegram_http)
 
-    def next_http_telegram_from_cycle(self) -> Dict[str, Any]:
+    def next_http_telegram_from_cycle(self) -> dict[str, Any]:
         """Get next proxy from proxies cycle"""
 
         if self._proxy_iterator is None:
@@ -355,7 +357,7 @@ class ProxiesReader(ProxiesReaderProtocol):
             )
         return dict(next(self._proxy_iterator).telegram_http)
 
-    def next_socks5_telegram_from_cycle(self) -> Dict[str, Any]:
+    def next_socks5_telegram_from_cycle(self) -> dict[str, Any]:
         """Get next proxy from proxies cycle"""
         if self._proxy_iterator_cycle is None:
             self._proxy_iterator_cycle = self.__proxies_gen(
@@ -363,7 +365,7 @@ class ProxiesReader(ProxiesReaderProtocol):
             )
         return dict(next(self._proxy_iterator_cycle).telegram_socks5)
 
-    def next_socks5_telegram_from_list(self) -> Dict[str, Any]:
+    def next_socks5_telegram_from_list(self) -> dict[str, Any]:
         """Get next proxy from proxies cycle"""
 
         if self._proxy_iterator_cycle is None:
@@ -389,7 +391,7 @@ class ProxiesReader(ProxiesReaderProtocol):
         return str(next(self._proxy_iterator_cycle).https)
 
     def __proxies_gen(
-        self, proxies_list: List[Proxy], cycle_proxies: bool = False
+        self, proxies_list: list[Proxy], cycle_proxies: bool = False
     ) -> ProxyiesGen:
         if cycle_proxies:
             for proxy in itertools.cycle(self._working_proxies):

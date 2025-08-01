@@ -1,6 +1,7 @@
-from ._types import ProxyDictT
 import re
 from typing import cast
+
+from ._types import ProxyDictT
 from .logs_config import logger
 
 
@@ -8,7 +9,7 @@ def parse_proxy_line(proxy: str) -> ProxyDictT:
     """
     Detects the format of the proxy string and extracts the components.
 
-    Returns a dictionary with 'ip_or_host', 'port', 'username', and 'password'.
+    Returns a dictionary with 'host', 'port', 'username', and 'password'.
     """
     logger.info("Reading the proxy format ...")
     patterns: list[str] = [
@@ -21,7 +22,7 @@ def parse_proxy_line(proxy: str) -> ProxyDictT:
         # Format 4: USERNAME:PASSWORD@IP/Hostname:PORT
         r"^(?P<username>[^:]+):(?P<password>[^@]+)@(?P<host>[\w\.-]+):(?P<port>\d+)$",
         # Format 5: IP/Hostname:PORT (No Username/Password)
-        r"^(?P<ip_or_host>[\w\.-]+):(?P<port>\d+)$",
+        r"^(?P<host>[\w\.-]+):(?P<port>\d+)$",
     ]
 
     for pattern in patterns:

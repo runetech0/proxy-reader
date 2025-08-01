@@ -9,3 +9,5 @@ format.py
 *egg*
 dist
 build
+.venv*
+.pytest_cache
