@@ -1,6 +1,6 @@
 [project]
 name = "proxy-reader"
-version = "2.1.1"
+version = "2.1.2"
 description = "Proxy reader for Python"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -28,7 +28,7 @@ github = "https://github.com/runetech0/proxy-reader"
 
 [tool.bumpver]
 
-current_version = "2.1.1"
+current_version = "2.1.2"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 tag_message = "{new_version}"
