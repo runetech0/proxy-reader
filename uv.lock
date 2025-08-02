@@ -338,7 +338,7 @@ wheels = [
 
 [[package]]
 name = "proxy-reader"
-version = "2.1.0"
+version = "2.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
@@ -359,7 +359,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.12.15" },
-    { name = "aiohttp-socks", specifier = ">=0.10.1" },
+    { name = "aiohttp-socks", specifier = ">=0.9.0" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=7.0.0" },
 ]

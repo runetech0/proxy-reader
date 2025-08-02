@@ -31,7 +31,7 @@ class ProxiesReader(ProxiesReaderProtocol):
         self._check_proxies = check_proxies
         self._shuffle = shuffle
         self._proxies_dict_list: list[ProxyDictT] = [
-            parse_proxy_line(p) for p in self._raw_proxies
+            parse_proxy_line(p) for p in self._raw_proxies if p.strip()
         ]
         self._all_proxies: ProxiesList = [Proxy(p) for p in self._proxies_dict_list]
 
