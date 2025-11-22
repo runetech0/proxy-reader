@@ -25,6 +25,7 @@ class ProxiesReader(ProxiesReaderProtocol):
         proxy_checking_threads: int = 50,
         max_response_time: int = 60,
         shuffle: bool = False,
+        check_urls: list[str] = [],
     ) -> None:
         self._raw_proxies = open(proxies_file, encoding="utf-8", mode="r").readlines()
 
@@ -50,7 +51,7 @@ class ProxiesReader(ProxiesReaderProtocol):
         self._timeout_count = 0
         self._proxies_checked = False
 
-        self._check_urls = [
+        self._check_urls = check_urls or [
             # New
             "http://checkip.amazonaws.com",
             "http://ipinfo.io/ip",
@@ -75,6 +76,7 @@ class ProxiesReader(ProxiesReaderProtocol):
         proxy_checking_threads: int = 50,
         max_response_time: int = 60,
         shuffle: bool = False,
+        check_urls: list[str] = [],
     ) -> "ProxiesReader":
         """Load proxies from a list"""
         proxies_file = tempfile.NamedTemporaryFile(
@@ -89,6 +91,7 @@ class ProxiesReader(ProxiesReaderProtocol):
                 proxy_checking_threads,
                 max_response_time,
                 shuffle,
+                check_urls,
             )
 
         finally:
