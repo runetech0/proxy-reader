@@ -338,7 +338,7 @@ wheels = [
 
 [[package]]
 name = "proxy-reader"
-version = "2.1.2"
+version = "2.1.3"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },

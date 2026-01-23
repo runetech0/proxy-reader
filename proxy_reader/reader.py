@@ -12,18 +12,17 @@ from aiohttp_socks import ProxyConnector
 
 from ._types import ProxiesList, ProxyDictT, ProxyiesGen
 from .logs_config import logger
-from .protocols.reader import ProxiesReaderProtocol
 from .proxy import Proxy
 from .utils import parse_proxy_line
 
 
-class ProxiesReader(ProxiesReaderProtocol):
+class ProxiesReader:
     def __init__(
         self,
         proxies_file: str,
         check_proxies: bool = False,
         proxy_checking_threads: int = 50,
-        max_response_time: int = 60,
+        max_response_time: int = 10,
         shuffle: bool = False,
         check_urls: list[str] = [],
     ) -> None:
@@ -67,6 +66,8 @@ class ProxiesReader(ProxiesReaderProtocol):
             # "http://api.thecatapi.com/v1/images/search",
             # "http://dog.ceo/api/breeds/image/random",
         ]
+        self._connectins_limit = 60 if "win" in sys.platform else 100
+        self._connector = aiohttp.TCPConnector(limit=self._connectins_limit)
 
     @classmethod
     def load_list(
@@ -175,48 +176,42 @@ class ProxiesReader(ProxiesReaderProtocol):
     async def _check_proxy(
         self, proxy: Proxy, response_time: int | None = None
     ) -> bool:
-        connectins_limit = 60 if "win" in sys.platform else 100
-        connector = aiohttp.TCPConnector(limit=connectins_limit)
-        session = aiohttp.ClientSession(connector=connector)
-        url = self._random_proxy_check_url()
-        p = proxy.http
-
         async with self._thread_control:
-            logger.debug(f"Checking proxy {p} ..")
+            session = aiohttp.ClientSession(connector=self._connector)
+            logger.debug(f"Checking proxy {proxy} ..")
             try:
                 # resp = await asyncio.wait_for(session.get(url, proxy=p), timeout=self._max_response_time)
                 resp = await session.get(
-                    url,
-                    timeout=aiohttp.ClientTimeout(self._max_response_time),
-                    proxy=p,
+                    self._random_proxy_check_url(),
+                    timeout=aiohttp.ClientTimeout(
+                        total=response_time or self._max_response_time
+                    ),
+                    proxy=proxy.http,
                     ssl=False,
                 )
-                # await resp.read()
+
+                if resp.status in range(200, 299):
+                    logger.debug(f"{proxy}: Working")
+                    self._working_proxies.append(proxy)
+                    return True
+
+                else:
+                    logger.debug(f"{proxy}: Not Working. Response code: {resp.status}")
+                    self._bad_proxies.append(proxy)
 
             except asyncio.TimeoutError as e:
                 self._timeout_count += 1
-                logger.debug(f"{p} : TIMEOUT {e}. {url}")
+                logger.debug(f"{proxy} : TIMEOUT {e}.")
                 self._bad_proxies.append(proxy)
-                await connector.close()
-                await session.close()
-                return False
 
             except Exception as e:
                 logger.debug(f"Bad proxy raised. {e}", exc_info=True)
-                return False
+                self._bad_proxies.append(proxy)
 
             finally:
                 await session.close()
 
-            if resp.status == 200:
-                logger.debug(f"{p}: Working")
-                self._working_proxies.append(proxy)
-
-            else:
-                logger.debug(f"{p}: Not Working. Response code: {resp.status}")
-                self._bad_proxies.append(proxy)
-
-            return True
+            return False
 
     async def check_all_proxies(self, max_resp_time: int = 30) -> None:
         """Run this to check all proxies at once."""
