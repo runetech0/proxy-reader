@@ -66,8 +66,8 @@ class ProxiesReader:
             # "http://api.thecatapi.com/v1/images/search",
             # "http://dog.ceo/api/breeds/image/random",
         ]
-        self._connectins_limit = 60 if "win" in sys.platform else 100
-        self._connector = aiohttp.TCPConnector(limit=self._connectins_limit)
+        self._connections_limit = 60 if "win" in sys.platform else 100
+        self._connector = aiohttp.TCPConnector(limit=self._connections_limit)
 
     @classmethod
     def load_list(
@@ -177,10 +177,10 @@ class ProxiesReader:
         self, proxy: Proxy, response_time: int | None = None
     ) -> bool:
         async with self._thread_control:
-            session = aiohttp.ClientSession(connector=self._connector)
+            connector = aiohttp.TCPConnector(limit=self._connections_limit)
+            session = aiohttp.ClientSession(connector=connector)
             logger.debug(f"Checking proxy {proxy} ..")
             try:
-                # resp = await asyncio.wait_for(session.get(url, proxy=p), timeout=self._max_response_time)
                 resp = await session.get(
                     self._random_proxy_check_url(),
                     timeout=aiohttp.ClientTimeout(

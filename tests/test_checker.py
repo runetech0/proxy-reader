@@ -1,6 +1,9 @@
 import asyncio
 
+from proxy_reader.logs_config import enable_debug_logs
 from proxy_reader.reader import ProxiesReader
+
+enable_debug_logs()
 
 
 async def main() -> None:
