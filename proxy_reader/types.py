@@ -1,5 +1,6 @@
-from typing import TypedDict, NotRequired, List, Iterator, TypeAlias, Any, Optional
-from .proxy import Proxy
+from typing import Any, Iterator, List, NotRequired, Optional, TypeAlias, TypedDict
+
+from .models.proxy import Proxy
 
 
 class TelegramHTTP(TypedDict):

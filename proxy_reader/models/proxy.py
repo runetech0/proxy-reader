@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
 if TYPE_CHECKING:
-    from ._types import GeneralDict, ProxyDictT
+    from ..types import GeneralDict, ProxyDictT
 
 
 class Proxy:

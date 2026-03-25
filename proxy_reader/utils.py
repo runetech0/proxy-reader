@@ -1,8 +1,8 @@
 import re
 from typing import cast
 
-from ._types import ProxyDictT
 from .logs_config import logger
+from .types import ProxyDictT
 
 
 def parse_proxy_line(proxy: str) -> ProxyDictT:
