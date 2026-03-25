@@ -30,11 +30,11 @@ class ProxiesChecker:
             proxy_checking_threads
         )
         self._max_response_time = max_response_time
-        self._timeout_count = 0
-        self._proxies_checked = False
+        self._connect_timeout = connect_timeout
 
         self._default_timeout = aiohttp.ClientTimeout(
-            total=max_response_time,
+            total=self._max_response_time,
+            connect=self._connect_timeout,
         )
 
         self._check_urls = check_urls or CHECK_URLS
