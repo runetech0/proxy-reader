@@ -10,6 +10,12 @@ from typing import Any
 import aiohttp
 from aiohttp_socks import ProxyConnector
 
+from proxy_reader.constants import (
+    CONNECT_TIMEOUT,
+    DEFAULT_CHECK_THREADS,
+    MAX_RESPONSE_TIME,
+)
+
 from ._types import ProxiesList, ProxyDictT, ProxyiesGen
 from .logs_config import logger
 from .proxy import Proxy
@@ -21,8 +27,9 @@ class ProxiesReader:
         self,
         proxies_file: str,
         check_proxies: bool = False,
-        proxy_checking_threads: int = 50,
-        max_response_time: int = 10,
+        proxy_checking_threads: int = DEFAULT_CHECK_THREADS,
+        max_response_time: int = MAX_RESPONSE_TIME,
+        connect_timeout: int = CONNECT_TIMEOUT,
         shuffle: bool = False,
         check_urls: list[str] = [],
     ) -> None:
@@ -50,6 +57,10 @@ class ProxiesReader:
         self._timeout_count = 0
         self._proxies_checked = False
 
+        self._default_timeout = aiohttp.ClientTimeout(
+            total=max_response_time,
+        )
+
         self._check_urls = check_urls or [
             # New
             "http://checkip.amazonaws.com",
@@ -68,14 +79,16 @@ class ProxiesReader:
         ]
         self._connections_limit = 60 if "win" in sys.platform else 100
         self._connector = aiohttp.TCPConnector(limit=self._connections_limit)
+        self._session: aiohttp.ClientSession | None = None
 
     @classmethod
     def load_list(
         cls,
         proxies: list[str],
         check_proxies: bool = False,
-        proxy_checking_threads: int = 50,
-        max_response_time: int = 60,
+        proxy_checking_threads: int = DEFAULT_CHECK_THREADS,
+        max_response_time: int = MAX_RESPONSE_TIME,
+        connect_timeout: int = CONNECT_TIMEOUT,
         shuffle: bool = False,
         check_urls: list[str] = [],
     ) -> "ProxiesReader":
@@ -91,6 +104,7 @@ class ProxiesReader:
                 check_proxies,
                 proxy_checking_threads,
                 max_response_time,
+                connect_timeout,
                 shuffle,
                 check_urls,
             )
@@ -100,6 +114,16 @@ class ProxiesReader:
             os.unlink(proxies_file.name)
 
         return new
+
+    async def close(self) -> None:
+        if self._session:
+            await self._session.close()
+        await self._connector.close()
+
+    async def _get_session(self) -> aiohttp.ClientSession:
+        if self._session is None or self._session.closed:
+            self._session = aiohttp.ClientSession(connector=self._connector)
+        return self._session
 
     @property
     def total(self) -> int:
@@ -143,54 +167,28 @@ class ProxiesReader:
         return warnings.warn(
             "read_with_auth is deprecated. Please don't use it. It's not working ...",
         )
-        raw_proxies = self._read_raw()
-        for proxy in raw_proxies:
-            sp_proxy = proxy.split(":")
-            ip = sp_proxy[0]
-            port = sp_proxy[1]
-            username = sp_proxy[2]
-            password = sp_proxy[3]
-            self._all_proxies.append(Proxy(ip, port, username, password))
-
-        self._has_auth = True
-        if self._shuffle:
-            random.shuffle(self._all_proxies)
 
     def read_authless(self) -> None:
         """Format: IP:PORT"""
         return warnings.warn(
             "read_authless is deprecated. Please don't use it. It's not working ..."
         )
-        raw_proxies = self._read_raw()
-        for proxy in raw_proxies:
-            sp_proxy = proxy.split(":")
-            ip = sp_proxy[0]
-            port = sp_proxy[1]
-            self._all_proxies.append(Proxy(ip, port))
-        logger.debug(
-            f"Loaded total {len(self._all_proxies)} proxies from {self._file_path}"
-        )
-        if self._shuffle:
-            random.shuffle(self._all_proxies)
 
     async def _check_proxy(
-        self, proxy: Proxy, response_time: int | None = None
+        self, proxy: Proxy, response_time: aiohttp.ClientTimeout | None = None
     ) -> bool:
         async with self._thread_control:
-            connector = aiohttp.TCPConnector(limit=self._connections_limit)
-            session = aiohttp.ClientSession(connector=connector)
             logger.debug(f"Checking proxy {proxy} ..")
             try:
+                session = await self._get_session()
                 resp = await session.get(
                     self._random_proxy_check_url(),
-                    timeout=aiohttp.ClientTimeout(
-                        total=response_time or self._max_response_time
-                    ),
+                    timeout=response_time,
                     proxy=proxy.http,
                     ssl=False,
                 )
 
-                if resp.status in range(200, 299):
+                if resp.status in range(200, 300):
                     logger.debug(f"{proxy}: Working")
                     self._working_proxies.append(proxy)
                     return True
@@ -208,29 +206,60 @@ class ProxiesReader:
                 logger.debug(f"Bad proxy raised. {e}", exc_info=True)
                 self._bad_proxies.append(proxy)
 
-            finally:
-                await session.close()
-
             return False
 
-    async def check_all_proxies(self, max_resp_time: int = 30) -> None:
+    async def check_single_proxy(
+        self,
+        proxy: str,
+        max_resp_time: int = MAX_RESPONSE_TIME,
+        connect_timeout: int = CONNECT_TIMEOUT,
+    ) -> bool:
+        proxy_dict = parse_proxy_line(proxy)
+        return await self._check_proxy(
+            Proxy(proxy_dict),
+            aiohttp.ClientTimeout(total=max_resp_time, connect=connect_timeout),
+        )
+
+    async def check_all_proxies(
+        self,
+        max_resp_time: int = MAX_RESPONSE_TIME,
+        connect_timeout: int = CONNECT_TIMEOUT,
+    ) -> None:
         """Run this to check all proxies at once."""
         if self._check_proxies:
             async with asyncio.TaskGroup() as gp:
                 for proxy in self._all_proxies:
-                    gp.create_task(self._check_proxy(proxy, max_resp_time))
+                    gp.create_task(
+                        self._check_proxy(
+                            proxy,
+                            aiohttp.ClientTimeout(
+                                total=max_resp_time, connect=connect_timeout
+                            ),
+                        )
+                    )
             self._proxies_checked = True
             logger.debug("All proxies checked.")
 
     async def _check_proxy_socks(
-        self, proxy: Proxy, response_time: int | None = None
+        self,
+        proxy: Proxy,
+        response_time: int = MAX_RESPONSE_TIME,
+        connect_timeout: int = CONNECT_TIMEOUT,
     ) -> bool:
         url = self._random_proxy_check_url()
         socks_connector = ProxyConnector.from_url(proxy.socks5)  # type: ignore
         session = aiohttp.ClientSession(connector=socks_connector)  # type: ignore
         logger.debug(f"Checking proxy {proxy} ..")
         try:
-            resp = await asyncio.wait_for(session.get(url), timeout=response_time)
+            resp = await asyncio.wait_for(
+                session.get(
+                    url,
+                    timeout=aiohttp.ClientTimeout(
+                        total=response_time, connect=connect_timeout
+                    ),
+                ),
+                timeout=response_time,
+            )
 
         except asyncio.TimeoutError:
             logger.debug(f"{proxy} : TIMEOUT: Not working.")
@@ -254,12 +283,22 @@ class ProxiesReader:
 
         return True
 
-    async def check_all_proxies_socks5(self, max_resp_time: int = 5) -> None:
+    async def check_all_proxies_socks5(
+        self,
+        max_resp_time: int = MAX_RESPONSE_TIME,
+        connect_timeout: int = CONNECT_TIMEOUT,
+    ) -> None:
         """Run the check on all proxies at once."""
         tasks: list[asyncio.Task[bool]] = []
         for proxy in self._all_proxies:
             tasks.append(
-                asyncio.create_task(self._check_proxy_socks(proxy, max_resp_time))
+                asyncio.create_task(
+                    self._check_proxy_socks(
+                        proxy,
+                        max_resp_time,
+                        connect_timeout,
+                    )
+                )
             )
         await asyncio.gather(*tasks)
         self._proxies_checked = True
