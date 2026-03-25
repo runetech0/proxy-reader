@@ -59,3 +59,9 @@ class ProxyCheckResults:
 
     def add_working(self, proxy: Proxy) -> None:
         self._working.append(proxy)
+
+    def __repr__(self) -> str:
+        return f"ProxyCheckResults(working={self.working_count}, bad={self.bad_count}, timeout={self.timeout_count}, error={self.error_count})"
+
+    def __str__(self) -> str:
+        return self.__repr__()

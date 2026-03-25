@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import random
-import sys
 
 import aiohttp
 from aiohttp_socks import ProxyConnector
@@ -40,8 +39,9 @@ class ProxiesChecker:
         )
 
         self._check_urls = check_urls or CHECK_URLS
-        self._connections_limit = 60 if "win" in sys.platform else 100
-        self._connector = aiohttp.TCPConnector(limit=self._connections_limit)
+        self._connector = aiohttp.TCPConnector(
+            limit=0, ttl_dns_cache=600, use_dns_cache=True
+        )
         self._session: aiohttp.ClientSession | None = None
 
         self._logger = logger or package_logger
@@ -54,10 +54,10 @@ class ProxiesChecker:
 
     async def _get_session(self) -> aiohttp.ClientSession:
         if self._session is None or self._session.closed:
-            self._logger.debug(
-                "Creating ClientSession (connector limit=%s)", self._connections_limit
-            )
+            self._logger.debug("Creating ClientSession (connector=%s)", self._connector)
             self._session = aiohttp.ClientSession(connector=self._connector)
+        else:
+            self._logger.debug("Reusing existing ClientSession")
         return self._session
 
     def _random_proxy_check_url(self) -> str:
