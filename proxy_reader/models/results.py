@@ -1,6 +1,7 @@
 import itertools
 from typing import Any
 
+from ..exceptions import NoMoreProxiesError
 from .proxy import Proxy
 
 
@@ -73,25 +74,41 @@ class ProxyCheckResults:
         return self.__str__()
 
     def next_http_from_list(self) -> str:
+        if not self._working:
+            raise NoMoreProxiesError("No more HTTP proxies available")
         return self._working.pop(0).http
 
     def next_http_from_cycle(self) -> str:
+        if not self._working:
+            raise NoMoreProxiesError("No more HTTP proxies available")
         return next(self._working_iter).http
 
     def next_socks5_from_list(self) -> str:
+        if not self._working:
+            raise NoMoreProxiesError("No more SOCKS5 proxies available")
         return self._working.pop(0).socks5
 
     def next_socks5_from_cycle(self) -> str:
+        if not self._working:
+            raise NoMoreProxiesError("No more SOCKS5 proxies available")
         return next(self._working_iter).socks5
 
     def next_http_telegram_from_list(self) -> dict[str, Any]:
+        if not self._working:
+            raise NoMoreProxiesError("No more HTTP Telegram proxies available")
         return self._working.pop(0).telegram_http
 
     def next_http_telegram_from_cycle(self) -> dict[str, Any]:
+        if not self._working:
+            raise NoMoreProxiesError("No more HTTP Telegram proxies available")
         return next(self._working_iter).telegram_http
 
     def next_socks5_telegram_from_list(self) -> dict[str, Any]:
+        if not self._working:
+            raise NoMoreProxiesError("No more SOCKS5 Telegram proxies available")
         return self._working.pop(0).telegram_socks5
 
     def next_socks5_telegram_from_cycle(self) -> dict[str, Any]:
+        if not self._working:
+            raise NoMoreProxiesError("No more SOCKS5 Telegram proxies available")
         return next(self._working_iter).telegram_socks5
